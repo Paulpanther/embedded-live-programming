@@ -1,18 +1,12 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.paulpanther.embeddedliveprogramming</id>
-    <name>IntelliJ Platform Plugin embedded-live-programming</name>
+    <id>com.paulmethfessel.embeddedliveprogramming</id>
+    <name>Embedded Live Programming</name>
     <vendor>paulpanther</vendor>
 
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.github.paulpanther.embeddedliveprogramming.services.MyApplicationService"/>
-        <projectService serviceImplementation="com.github.paulpanther.embeddedliveprogramming.services.MyProjectService"/>
+        <configurationType implementation="com.elp.HardwareRunConfigurationType" />
     </extensions>
-
-    <applicationListeners>
-        <listener class="com.github.paulpanther.embeddedliveprogramming.listeners.MyProjectManagerListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
-    </applicationListeners>
 </idea-plugin>
