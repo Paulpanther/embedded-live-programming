@@ -7,6 +7,6 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <configurationType implementation="com.elp.HardwareRunConfigurationType" />
+        <statusBarWidgetFactory implementation="com.elp.HITLWidgetFactory" />
     </extensions>
 </idea-plugin>
