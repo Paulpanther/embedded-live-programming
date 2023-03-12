@@ -1,5 +1,6 @@
 package com.elp
 
+import com.intellij.codeInsight.hints.fireContentChanged
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget
@@ -28,6 +29,7 @@ class HITLWidget: StatusBarWidget, StatusBarWidget.IconPresentation {
     override fun install(statusBar: StatusBar) = Unit
 
     override fun getClickConsumer() = Consumer<MouseEvent> {
-
+        probeService.p?.text = "Changed"
+        probeService.p?.fireContentChanged()
     }
 }

@@ -5,8 +5,11 @@
     <vendor>paulpanther</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.cidr.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.elp.ProbeService" />
         <statusBarWidgetFactory implementation="com.elp.HITLWidgetFactory" />
+        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ProbeInlayProvider" />
     </extensions>
 </idea-plugin>
