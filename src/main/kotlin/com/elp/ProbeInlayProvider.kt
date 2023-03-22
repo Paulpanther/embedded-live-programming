@@ -39,10 +39,8 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
                 sink: InlayHintsSink
             ): Boolean {
                 if (element is OCDeclarationStatement) {
-                    val p = factory.smallText("Hey")
-                    val textPresentation = ((p as WithAttributesPresentation).presentation as InsetPresentation).presentation as TextInlayPresentation
-                    probeService.p = textPresentation
-                    sink.addInlineElement(element.startOffset, false, p, true)
+                    val probe = probeService.probes.find { it.range == element.textRange } ?: return true
+                    sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory), true)
                     return false
                 }
                 return true

@@ -11,5 +11,6 @@
         <applicationService serviceImplementation="com.elp.ProbeService" />
         <statusBarWidgetFactory implementation="com.elp.HITLWidgetFactory" />
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ProbeInlayProvider" />
+        <fileDocumentManagerListener implementation="com.elp.FileChangeListener" />
     </extensions>
 </idea-plugin>

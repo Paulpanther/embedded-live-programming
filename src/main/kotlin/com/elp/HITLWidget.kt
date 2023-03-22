@@ -29,7 +29,5 @@ class HITLWidget: StatusBarWidget, StatusBarWidget.IconPresentation {
     override fun install(statusBar: StatusBar) = Unit
 
     override fun getClickConsumer() = Consumer<MouseEvent> {
-        probeService.p?.text = "Changed"
-        probeService.p?.fireContentChanged()
     }
 }
