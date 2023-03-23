@@ -8,8 +8,13 @@ import com.intellij.openapi.util.Disposer
 @Service
 class ProbeService: Disposable {
     var probes = mutableListOf<ProbePresentation>()
-    val runner = Runner().start().also {
-        Disposer.register(this, it)
+
+    val probeUpdater = ProbeUpdateController().start()
+    val runner = Runner().start()
+
+    init {
+        Disposer.register(this, runner)
+        Disposer.register(this, probeUpdater)
     }
 
     override fun dispose() = Unit
