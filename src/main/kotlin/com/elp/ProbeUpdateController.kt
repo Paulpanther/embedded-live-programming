@@ -2,6 +2,7 @@ package com.elp
 
 import com.intellij.codeInsight.hints.fireContentChanged
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.application.invokeLater
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
@@ -28,10 +29,12 @@ class ProbeUpdateController: Disposable {
 
         val presentation = probes.mapNotNull { it.presentation }.lastOrNull()
 
-        probes.forEach { it.applyText() }
+        invokeLater {
+            probes.forEach { it.applyText() }
 
-        @Suppress("UnstableApiUsage")
-        presentation?.fireContentChanged()
+            @Suppress("UnstableApiUsage")
+            presentation?.fireContentChanged()
+        }
     }
 
     override fun dispose() {

@@ -26,7 +26,7 @@ class Frame(private val path: String): Thread() {
 
         for (realProbe in realProbes) {
             val executedProbes = probesByCode[realProbe.code]
-            val text = executedProbes?.joinToString(", ") { it.value } ?: "unreached"
+            val text = executedProbes?.joinToString(", ") { it.value } ?: continue
             realProbe.updateText(text)
         }
         return running
@@ -35,26 +35,27 @@ class Frame(private val path: String): Thread() {
 
 class Runner: Disposable {
     private var i = 0
-    private val path = "/home/paul/dev/uni/embedded-live-programming-runner"
+    private val runnerPath = "/home/paul/dev/uni/embedded-live-programming-runner"
+    private val userCodePath = "/home/paul/dev/uni/embedded-live-programming-user-code"
     private var frame: Frame? = null
 
     fun start(): Runner {
-        System.load("$path/runner.so")
+        System.load("$runnerPath/runner.so")
         return this
     }
 
     fun executeFile(file: PsiFile) {
         val content = file.text
-        File("$path/tmp/code.cpp").writeText(content)
+        File("$userCodePath/src/code.cpp").writeText(content)
         val lib = "code${i++}"
-        val cmd = "g++ -I $path/user_include -shared -fPIC $path/tmp/code.cpp -o $path/tmp/$lib.so"
+        val cmd = "$userCodePath/build.sh $lib"
         Runtime
             .getRuntime()
             .exec(cmd)
             .waitFor(20, TimeUnit.SECONDS)
 
         frame?.stopRunning()
-        frame = Frame("$path/tmp/$lib.so").also { it.start() }
+        frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
     }
 
     override fun dispose() {
