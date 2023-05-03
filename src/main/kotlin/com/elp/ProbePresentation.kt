@@ -2,11 +2,7 @@
 
 package com.elp
 
-import com.intellij.codeInsight.hints.InlayPresentationFactory
-import com.intellij.codeInsight.hints.presentation.InlayPresentation
-import com.intellij.codeInsight.hints.presentation.InsetPresentation
-import com.intellij.codeInsight.hints.presentation.TextInlayPresentation
-import com.intellij.codeInsight.hints.presentation.WithAttributesPresentation
+import com.intellij.codeInsight.hints.presentation.*
 import com.intellij.openapi.util.TextRange
 
 const val minDelay = 100L
@@ -21,13 +17,14 @@ class ProbePresentation(
         private set
     var markedForUpdate = false
 
-    fun createPresentation(factory: InlayPresentationFactory): InlayPresentation {
+    fun createPresentation(factory: PresentationFactory): InlayPresentation {
         val wrappedPresentation = factory.smallText(text)
         val p = (
                 (wrappedPresentation as WithAttributesPresentation)
                     .presentation as InsetPresentation).presentation as TextInlayPresentation
+//        val p = SparklineProbe(0, 256)
         presentation = p
-        return wrappedPresentation
+        return factory.inset(wrappedPresentation, top = 5, left = 3)
     }
 
     fun updateText(text: String) {
@@ -36,6 +33,7 @@ class ProbePresentation(
     }
 
     fun applyText() {
+//        presentation?.update(text.toInt())
         presentation?.let { it.text = text }
     }
 }

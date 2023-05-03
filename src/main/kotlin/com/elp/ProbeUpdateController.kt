@@ -27,13 +27,12 @@ class ProbeUpdateController: Disposable {
 
         probes.forEach { it.markedForUpdate = false }
 
-        val presentation = probes.mapNotNull { it.presentation }.lastOrNull()
-
         invokeLater {
-            probes.forEach { it.applyText() }
-
-            @Suppress("UnstableApiUsage")
-            presentation?.fireContentChanged()
+            probes.forEach {
+                it.applyText()
+                @Suppress("UnstableApiUsage")
+                it.presentation?.fireContentChanged()
+            }
         }
     }
 
