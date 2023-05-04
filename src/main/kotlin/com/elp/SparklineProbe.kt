@@ -2,12 +2,11 @@
 
 package com.elp
 
-import com.intellij.codeInsight.hints.fireContentChanged
 import com.intellij.codeInsight.hints.presentation.BasePresentation
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
 import java.awt.Graphics2D
-import java.util.LinkedList
+import java.util.*
 import kotlin.math.roundToInt
 
 private class ValuesLine(val totalSize: Int) {
@@ -30,19 +29,23 @@ private class ValuesLine(val totalSize: Int) {
 
 class SparklineProbe(
     private val minValue: Int,
-    private val maxValue: Int
+    private val maxValue: Int,
+    override val height: Int
 ): BasePresentation() {
     private var value: Int = 0
 
-    override val height = 10
+    val paddingY = 4
     override val width = 50
 
     private var line = ValuesLine(width)
 
     fun update(value: Int) {
         this.value = value
-        line += (value.toFloat() / height).roundToInt()
-        fireContentChanged()
+
+        // interpolate value between min and max and calculate relative y position with padding
+        val relValue = (value - minValue).toFloat() / (maxValue - minValue)
+        val innerHeight = height - paddingY * 2
+        line += paddingY + innerHeight - (relValue * innerHeight).roundToInt()
     }
 
     override fun paint(g: Graphics2D, attributes: TextAttributes) {

@@ -30,8 +30,6 @@ class ProbeUpdateController: Disposable {
             probes.forEach {
                 it.applyText()
                 it.editor?.repaint(it.range.startOffset, it.range.endOffset)
-//                @Suppress("UnstableApiUsage")
-//                it.presentation?.fireContentChanged()
             }
         }
     }

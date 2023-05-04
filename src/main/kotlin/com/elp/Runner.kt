@@ -44,11 +44,11 @@ class Frame(
     private fun mockExecute() {
         var i = 0
 
-        Timer().scheduleAtFixedRate(0L, 100L) {
+        Timer().scheduleAtFixedRate(0L, 10L) {
             for (probe in probeService.probes) {
                 probe.updateText(i.toString())
             }
-            i = (i + 1) % 1000
+            i = (i + 1) % 256
 
             if (!running) {
                 cancel()
