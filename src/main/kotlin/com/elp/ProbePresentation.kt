@@ -3,6 +3,7 @@
 package com.elp
 
 import com.intellij.codeInsight.hints.presentation.*
+import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.TextRange
 
 const val minDelay = 100L
@@ -15,9 +16,11 @@ class ProbePresentation(
     private var text = "not run"
     var presentation: TextInlayPresentation? = null
         private set
+    var editor: EditorImpl? = null
     var markedForUpdate = false
 
-    fun createPresentation(factory: PresentationFactory): InlayPresentation {
+    fun createPresentation(factory: PresentationFactory, editor: EditorImpl): InlayPresentation {
+        this.editor = editor
         val wrappedPresentation = factory.smallText(text)
         val p = (
                 (wrappedPresentation as WithAttributesPresentation)

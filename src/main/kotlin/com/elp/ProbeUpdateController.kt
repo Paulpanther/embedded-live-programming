@@ -1,6 +1,5 @@
 package com.elp
 
-import com.intellij.codeInsight.hints.fireContentChanged
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.application.invokeLater
 import java.util.*
@@ -30,8 +29,9 @@ class ProbeUpdateController: Disposable {
         invokeLater {
             probes.forEach {
                 it.applyText()
-                @Suppress("UnstableApiUsage")
-                it.presentation?.fireContentChanged()
+                it.editor?.repaint(it.range.startOffset, it.range.endOffset)
+//                @Suppress("UnstableApiUsage")
+//                it.presentation?.fireContentChanged()
             }
         }
     }

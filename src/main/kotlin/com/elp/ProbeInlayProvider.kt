@@ -8,6 +8,7 @@ import com.intellij.codeInsight.hints.presentation.PresentationFactory
 import com.intellij.codeInsight.hints.presentation.TextInlayPresentation
 import com.intellij.codeInsight.hints.presentation.WithAttributesPresentation
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
@@ -41,7 +42,7 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
             ): Boolean {
                 fun createInlay(element: PsiElement) {
                     val probe = probeService.probes.find { it.range == element.textRange } ?: return
-                    sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory), true)
+                    sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory, editor as EditorImpl), true)
                 }
 
                 return when (element) {
