@@ -12,5 +12,8 @@
         <statusBarWidgetFactory implementation="com.elp.HITLWidgetFactory" />
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ProbeInlayProvider" />
         <fileDocumentManagerListener implementation="com.elp.FileChangeListener" />
+        <intentionAction>
+            <className>com.elp.ReplacementAction</className>
+        </intentionAction>
     </extensions>
 </idea-plugin>
