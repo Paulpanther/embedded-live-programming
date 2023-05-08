@@ -1,6 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp
+package com.elp.ui
 
 import com.intellij.codeInsight.hints.presentation.BasePresentation
 import com.intellij.openapi.editor.markup.TextAttributes

@@ -1,5 +1,6 @@
-package com.elp
+package com.elp.actions
 
+import com.elp.ui.ReplacementBallon
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project

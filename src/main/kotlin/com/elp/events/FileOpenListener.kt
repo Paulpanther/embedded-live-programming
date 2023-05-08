@@ -1,5 +1,6 @@
-package com.elp
+package com.elp.events
 
+import com.elp.openProject
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDocumentListener

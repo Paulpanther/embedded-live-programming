@@ -9,11 +9,11 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <applicationService serviceImplementation="com.elp.ProbeService" />
-        <statusBarWidgetFactory implementation="com.elp.HITLWidgetFactory" />
-        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ProbeInlayProvider" />
-        <fileDocumentManagerListener implementation="com.elp.FileChangeListener" />
+        <statusBarWidgetFactory implementation="com.elp.ui.HITLWidgetFactory" />
+        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.ProbeInlayProvider" />
+        <fileDocumentManagerListener implementation="com.elp.events.FileChangeListener" />
         <intentionAction>
-            <className>com.elp.ReplacementAction</className>
+            <className>com.elp.actions.ReplacementAction</className>
         </intentionAction>
     </extensions>
 </idea-plugin>

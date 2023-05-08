@@ -1,4 +1,4 @@
-package com.elp
+package com.elp.ui
 
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.ui.popup.Balloon

@@ -1,5 +1,8 @@
 package com.elp
 
+import com.elp.logic.ProbeUpdateController
+import com.elp.logic.Runner
+import com.elp.ui.ProbePresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service

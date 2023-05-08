@@ -1,7 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp
+package com.elp.ui
 
+import com.elp.probeService
 import com.intellij.codeInsight.hints.presentation.*
 import com.intellij.openapi.editor.impl.EditorImpl
 import com.intellij.openapi.util.TextRange

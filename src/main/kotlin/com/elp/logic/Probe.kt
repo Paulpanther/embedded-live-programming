@@ -1,4 +1,4 @@
-package com.elp
+package com.elp.logic
 
 data class Probe(
     val code: Int,

@@ -1,6 +1,5 @@
-package com.elp
+package com.elp.ui
 
-import com.intellij.codeInsight.hints.fireContentChanged
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.StatusBar
 import com.intellij.openapi.wm.StatusBarWidget

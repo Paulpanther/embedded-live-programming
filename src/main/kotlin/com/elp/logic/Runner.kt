@@ -1,5 +1,6 @@
-package com.elp
+package com.elp.logic
 
+import com.elp.probeService
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import java.io.File

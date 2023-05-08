@@ -1,21 +1,16 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp
+package com.elp.ui
 
+import com.elp.probeService
 import com.intellij.codeInsight.hints.*
-import com.intellij.codeInsight.hints.presentation.InsetPresentation
-import com.intellij.codeInsight.hints.presentation.PresentationFactory
-import com.intellij.codeInsight.hints.presentation.TextInlayPresentation
-import com.intellij.codeInsight.hints.presentation.WithAttributesPresentation
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.impl.EditorImpl
-import com.intellij.psi.PsiComment
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.cidr.lang.psi.OCAssignmentExpression
-import com.jetbrains.cidr.lang.psi.OCDeclaration
 import com.jetbrains.cidr.lang.psi.OCDeclarationStatement
 import javax.swing.JComponent
 
