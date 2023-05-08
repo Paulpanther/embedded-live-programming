@@ -21,7 +21,7 @@ class ProbeUpdateController: Disposable {
     }
 
     private fun update() {
-        val probes = probeService.probes.filter { it.markedForUpdate }
+        val probes = probeService.probes.values.flatten().filter { it.markedForUpdate }
         if (probes.isEmpty()) return
 
         probes.forEach { it.markedForUpdate = false }

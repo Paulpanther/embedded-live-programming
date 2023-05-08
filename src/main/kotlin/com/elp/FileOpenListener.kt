@@ -19,6 +19,6 @@ class FileOpenListener: PsiDocumentListener {
     ) {}
 
     override fun fileCreated(file: PsiFile, document: Document) {
-        FileAnalyzer.analyze(file)
+//        FileAnalyzer.analyze(file)
     }
 }

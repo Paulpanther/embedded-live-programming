@@ -7,7 +7,7 @@ import com.intellij.openapi.util.Disposer
 
 @Service
 class ProbeService: Disposable {
-    var probes = mutableListOf<ProbePresentation>()
+    var probes = mutableMapOf<String, List<ProbePresentation>>()
 
     val probeUpdater = ProbeUpdateController().start()
     val runner = Runner(mock = true).start()

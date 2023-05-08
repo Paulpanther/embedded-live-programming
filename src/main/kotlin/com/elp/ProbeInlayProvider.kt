@@ -41,7 +41,8 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
                 sink: InlayHintsSink
             ): Boolean {
                 fun createInlay(element: PsiElement) {
-                    val probe = probeService.probes.find { it.range == element.textRange } ?: return
+                    val path = file.virtualFile.path
+                    val probe = probeService.probes[path]?.find { it.range == element.textRange } ?: return
                     sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory, editor as EditorImpl), true)
                 }
 

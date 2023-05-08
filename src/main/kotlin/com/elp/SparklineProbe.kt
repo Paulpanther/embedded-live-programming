@@ -41,6 +41,7 @@ class SparklineProbe(
 
     fun update(value: Int) {
         this.value = value
+        if (value < minValue || value > maxValue) error("Invalid value $value. Should be between $minValue and $maxValue")
 
         // interpolate value between min and max and calculate relative y position with padding
         val relValue = (value - minValue).toFloat() / (maxValue - minValue)

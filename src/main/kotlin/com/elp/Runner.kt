@@ -30,7 +30,7 @@ class Frame(
 
     @Suppress("unused")
     private fun onIteration(probes: Array<Probe>): Boolean {
-        val realProbes = probeService.probes
+        val realProbes = probeService.probes.values.flatten()
         val probesByCode = probes.groupBy { it.code }
 
         for (realProbe in realProbes) {
@@ -45,10 +45,10 @@ class Frame(
         var i = 0
 
         Timer().scheduleAtFixedRate(0L, 10L) {
-            for (probe in probeService.probes) {
+            for (probe in probeService.probes.values.flatten()) {
                 probe.updateText(i.toString())
             }
-            i = (i + 1) % 256
+            i = (i + 10) % 4097
 
             if (!running) {
                 cancel()
@@ -72,7 +72,7 @@ class Runner(
         return this
     }
 
-    fun executeFile(file: PsiFile) {
+    fun executeFiles(files: List<PsiFile>) {
         if (mock) {
             if (frame == null) {
                 frame = Frame("", true).also { it.start() }
@@ -80,8 +80,11 @@ class Runner(
             return
         }
 
-        val content = file.text
-        File("$userCodePath/src/code.cpp").writeText(content)
+        File("$userCodePath/src/user").listFiles()?.forEach { it.delete() }
+        for (file in files) {
+            File("$userCodePath/src/user/${file.name}").writeText(file.text)
+        }
+
         val lib = "code${i++}"
         val cmd = "$userCodePath/build.sh $lib"
         Runtime
