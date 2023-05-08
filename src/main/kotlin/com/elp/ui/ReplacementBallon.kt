@@ -1,6 +1,8 @@
 package com.elp.ui
 
 import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.editor.EditorCustomElementRenderer
+import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.psi.PsiElement
@@ -14,6 +16,7 @@ import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PositionTracker
 import java.awt.*
 import javax.swing.BorderFactory
+import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
@@ -23,13 +26,18 @@ object ReplacementBallon {
     fun create(editor: Editor, target: PsiElement) {
         val content = JPanel()
         content.layout = BorderLayout()
+
         val textField = JTextField("Hello World")
         textField.border = BorderFactory.createEmptyBorder()
+
+        val closeButton = JButton("X")
+
         content.add(textField, BorderLayout.CENTER)
+        content.add(closeButton, BorderLayout.EAST)
 
         val balloon = JBPopupFactory.getInstance()
             .createBalloonBuilder(content)
-            .setCloseButtonEnabled(true)
+            .setCloseButtonEnabled(false)
             .setFillColor(JBColor.PanelBackground)
             .setHideOnAction(false)
             .setHideOnKeyOutside(false)
@@ -49,6 +57,17 @@ object ReplacementBallon {
             }
         })
 
+        val inlay = editor.inlayModel.addBlockElement(target.startOffset, false, true, 0, object: EditorCustomElementRenderer {
+            override fun calcWidthInPixels(inlay: Inlay<*>): Int {
+                return 100
+            }
+        })
+
+        closeButton.addActionListener {
+            balloon.hide()
+            inlay?.dispose()
+        }
+
         val factory = JBPopupFactory.getInstance()
 
         balloon.show(object : PositionTracker<Balloon>(editor.contentComponent) {
@@ -56,7 +75,13 @@ object ReplacementBallon {
                 val p = editor.offsetToVisualPosition(target.startOffset)
                 editor.putUserData(PopupFactoryImpl.ANCHOR_POPUP_POSITION, p)
 
-                return factory.guessBestPopupLocation(editor)
+                val pos = factory.guessBestPopupLocation(editor)
+                var y = pos.screenPoint.y
+                if (pos.point.y > editor.lineHeight + balloon.preferredSize.height) {
+                    y -= editor.lineHeight
+                }
+
+                return RelativePoint(Point(pos.screenPoint.x, y))
             }
         }, Balloon.Position.above)
     }
