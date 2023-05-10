@@ -1,37 +1,25 @@
 package com.elp.ui
 
-import com.intellij.codeInsight.navigation.NavigationUtil
 import com.intellij.icons.AllIcons
-import com.intellij.ide.util.PsiElementListCellRenderer
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
-import com.intellij.openapi.editor.colors.CodeInsightColors
 import com.intellij.openapi.editor.colors.EditorColors
 import com.intellij.openapi.editor.markup.HighlighterLayer
 import com.intellij.openapi.editor.markup.HighlighterTargetArea
-import com.intellij.openapi.editor.markup.RangeHighlighter
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
-import com.intellij.openapi.ui.popup.JBPopupListener
-import com.intellij.psi.NavigatablePsiElement
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.PsiUtilBase
-import com.intellij.psi.util.PsiUtilCore
-import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.BalloonImpl
-import com.intellij.ui.BalloonImpl.ActionButton
 import com.intellij.ui.BalloonImpl.ShadowBorderProvider
-import com.intellij.ui.JBColor
+import com.intellij.ui.EditorTextField
 import com.intellij.ui.awt.RelativePoint
-import com.intellij.ui.popup.AbstractPopup
 import com.intellij.ui.popup.PopupFactoryImpl
-import com.intellij.ui.speedSearch.ListWithFilter
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PositionTracker
+import com.jetbrains.cidr.lang.OCFileType
 import java.awt.*
 import javax.swing.*
 
@@ -40,10 +28,9 @@ object ReplacementBallon {
     fun create(editor: Editor, target: PsiElement) {
         val content = JPanel().apply {
             layout = BorderLayout()
-            isOpaque = false
         }
 
-        val textField = JTextField("Hello World").apply {
+        val textField = EditorTextField("Hello World", target.project, OCFileType.INSTANCE).apply {
             border = BorderFactory.createEmptyBorder()
         }
 
@@ -64,7 +51,7 @@ object ReplacementBallon {
         val balloon = JBPopupFactory.getInstance()
             .createBalloonBuilder(content)
             .setCloseButtonEnabled(false)
-            .setFillColor(JBColor.PanelBackground)
+//            .setFillColor(EditorColors.NOTIFICATION_BACKGROUND.defaultColor)
             .setHideOnAction(false)
             .setHideOnKeyOutside(false)
             .setHideOnClickOutside(false)
@@ -72,51 +59,18 @@ object ReplacementBallon {
 
         (balloon as BalloonImpl).setShadowBorderProvider(NoShadowBorderProvider())
 
-        val scopes = mutableListOf<PsiElement>()
-        scopes += target
-        scopes += target.parent
-        scopes += target.parent.parent
-        scopes += target.parent.parent.parent
-        scopes += target.parent.parent.parent.parent
-        val scopeArray = PsiUtilCore.toPsiElementArray(scopes)
+        ExpressionSelector(editor, "Select expression to replace") { selected ->
+            val inlay = editor.inlayModel.addBlockElement(selected.startOffset, false, true, 0, EmptyInlayElementRenderer()) ?: return@ExpressionSelector
+            val highlight = editor.markupModel.addRangeHighlighter(EditorColors.DELETED_TEXT_ATTRIBUTES, selected.startOffset, selected.endOffset, HighlighterLayer.WARNING, HighlighterTargetArea.EXACT_RANGE)
 
-        val popup = NavigationUtil.getPsiElementPopup(scopeArray, object: PsiElementListCellRenderer<PsiElement>() {
-            override fun getElementText(element: PsiElement?): String {
-                return element?.text ?: "No text"
+            closeButton.addActionListener {
+                editor.markupModel.removeHighlighter(highlight)
+                balloon.hide()
+                inlay.dispose()
             }
 
-            override fun getContainerText(element: PsiElement?, name: String?): String? {
-                return "Container"
-            }
-        }, "Hello Scope") {
-            println(it)
-            false
-        }.apply {
-            showInBestPositionFor(editor)
-        }
-
-        var highlight: RangeHighlighter? = null
-
-        // Hacky
-        val list = ((popup as AbstractPopup).component.components[1] as ListWithFilter<PsiElement>).list
-        list.addListSelectionListener {
-            val selected = scopes[it.firstIndex]
-
-            highlight?.let { editor.markupModel.removeHighlighter(it) }
-            highlight = editor.markupModel.addRangeHighlighter(CodeInsightColors.WARNINGS_ATTRIBUTES, selected.startOffset, selected.endOffset, HighlighterLayer.WARNING, HighlighterTargetArea.EXACT_RANGE)
-        }
-
-//        val inlay = editor.inlayModel.addBlockElement(target.startOffset, false, true, 0, EmptyInlayElementRenderer())
-
-//        val highlight = editor.markupModel.addRangeHighlighter(CodeInsightColors.WARNINGS_ATTRIBUTES, target.startOffset, target.endOffset, HighlighterLayer.WARNING, HighlighterTargetArea.EXACT_RANGE)
-
-//        closeButton.addActionListener {
-//            editor.markupModel.removeHighlighter(highlight)
-//            balloon.hide()
-//            inlay?.dispose()
-//        }
-
-//        balloon.show(PsiElementPositionTracker(editor, target), Balloon.Position.above)
+            balloon.show(InlayPositionTracker(editor, inlay), Balloon.Position.above)
+        }.show(target)
     }
 }
 
@@ -137,15 +91,23 @@ private class EmptyInlayElementRenderer: EditorCustomElementRenderer {
     override fun calcWidthInPixels(inlay: Inlay<*>) = 100 // Abitrary number
 }
 
-private class PsiElementPositionTracker(
+private class InlayPositionTracker(
     private val editor: Editor,
-    private val target: PsiElement
+    private val inlay: Inlay<*>,
 ): PositionTracker<Balloon>(editor.contentComponent) {
     private val factory = JBPopupFactory.getInstance()
+    private var last: RelativePoint? = null
 
     override fun recalculateLocation(balloon: Balloon): RelativePoint {
-        val p = editor.offsetToVisualPosition(target.startOffset)
+        val p = inlay.visualPosition
         editor.putUserData(PopupFactoryImpl.ANCHOR_POPUP_POSITION, p)
+
+        if (!factory.isBestPopupLocationVisible(editor)) {
+            (balloon as BalloonImpl).component?.apply { isVisible = false }
+            last?.let { return it }
+        }
+
+        (balloon as BalloonImpl).component?.apply { if (!isVisible) isVisible = true }
 
         val pos = factory.guessBestPopupLocation(editor)
         var y = pos.screenPoint.y
@@ -153,6 +115,6 @@ private class PsiElementPositionTracker(
             y -= editor.lineHeight
         }
 
-        return RelativePoint(Point(pos.screenPoint.x, y))
+        return RelativePoint(Point(pos.screenPoint.x, y)).also { last = it }
     }
 }
