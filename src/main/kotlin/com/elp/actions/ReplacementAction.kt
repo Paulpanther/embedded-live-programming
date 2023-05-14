@@ -1,6 +1,6 @@
 package com.elp.actions
 
-import com.elp.ui.ReplacementBallon
+import com.elp.ui.Replacement
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
@@ -20,6 +20,6 @@ class ReplacementAction: PsiElementBaseIntentionAction() {
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
-        ReplacementBallon.create(editor ?: return, element)
+        Replacement.selectTargetThenShow(editor ?: return, element)
     }
 }
