@@ -10,6 +10,7 @@ import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.jetbrains.cidr.lang.OCLanguage
+import com.jetbrains.cidr.lang.symbols.cpp.OCStructSymbol
 import com.jetbrains.cidr.lang.symbols.objc.OCClassSymbol
 
 
@@ -53,7 +54,7 @@ class Example(
     val file: PsiFile = PsiFileFactory.getInstance(project).createFileFromText(OCLanguage.getInstance(), "void setup() {\n\t\n}\n\nvoid loop() {\n\t\n}")
     val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: error("")
 
-    var activeClass: OCClassSymbol? = null
+    var activeClass: OCStructSymbol? = null
         set(value) {
             field = value
             onActiveClassChange.call()

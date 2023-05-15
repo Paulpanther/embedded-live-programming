@@ -11,6 +11,8 @@ import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.jetbrains.cidr.lang.psi.OCClassDeclaration
 import com.jetbrains.cidr.lang.psi.visitors.OCVisitor
+import com.jetbrains.cidr.lang.symbols.cpp.OCStructSymbol
+import com.jetbrains.cidr.lang.symbols.objc.OCClassSymbol
 import com.jetbrains.cidr.lang.ui.OCClassChooserDialog
 import java.awt.BorderLayout
 import java.awt.FlowLayout
@@ -46,9 +48,10 @@ class ExampleToolWindowSettingsView(
             addActionListener {
                 val classChooser = OCClassChooserDialog("Choose class", project, null, null) { true }
                 classChooser.showDialog()
-                val selectedClass = classChooser.selected.name
+                val selectedClass = classChooser.selected
 
-                classLabel.text = selectedClass
+                classLabel.text = selectedClass.name
+                example.activeClass = selectedClass.symbol as OCStructSymbol
             }
         }.also { add(it) }
     }
