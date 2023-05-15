@@ -17,5 +17,6 @@
             <className>com.elp.actions.ReplacementAction</className>
         </intentionAction>
         <toolWindow factoryClass="com.elp.ui.ExampleToolWindowFactory" id="Examples" anchor="bottom" canCloseContents="true"/>
+        <notificationGroup id="Embedded Live Programming Notification Group" displayType="BALLOON" />
     </extensions>
 </idea-plugin>

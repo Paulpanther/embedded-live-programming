@@ -1,5 +1,6 @@
 package com.elp.actions
 
+import com.elp.exampleService
 import com.elp.ui.Replacement
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor
@@ -16,7 +17,7 @@ class ReplacementAction: PsiElementBaseIntentionAction() {
     }
 
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
-        return true
+        return project.exampleService.activeExample != null
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {

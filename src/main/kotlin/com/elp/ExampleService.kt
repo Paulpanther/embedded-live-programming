@@ -1,6 +1,7 @@
 package com.elp
 
 import com.elp.ui.Replacement
+import com.elp.util.ExampleNotification
 import com.elp.util.UpdateListeners
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -17,12 +18,12 @@ class ExampleService(
     private val project: Project
 ) {
     val examples = mutableListOf(Example(project))
-    var activeExample: Example = examples[0]
+    var activeExample: Example? = null
         set(value) {
             if (field == value) return
 
-            activeExample.hide()
-            value.show()
+            activeExample?.hide()
+            value?.show()
             field = value
         }
 
@@ -32,6 +33,15 @@ class ExampleService(
         activeExample = newExample
         return newExample
     }
+
+    fun getActiveExampleOrShowError(error: String, consumer: (example: Example) -> Unit) {
+        val example = activeExample
+        if (example == null) {
+            ExampleNotification.notifyError(project, error)
+        } else {
+            consumer(example)
+        }
+    }
 }
 
 val Project.exampleService get() = this.service<ExampleService>()
@@ -39,7 +49,7 @@ val Project.exampleService get() = this.service<ExampleService>()
 class Example(
     private val project: Project,
 ) {
-    private val replacements = mutableListOf<Replacement>()
+    val replacements = mutableListOf<Replacement>()
     val file: PsiFile = PsiFileFactory.getInstance(project).createFileFromText(OCLanguage.getInstance(), "void setup() {\n\t\n}\n\nvoid loop() {\n\t\n}")
     val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: error("")
 
@@ -49,8 +59,8 @@ class Example(
             onActiveClassChange.call()
         }
 
-    private val onReplacementChange = UpdateListeners()
-    private val onActiveClassChange = UpdateListeners()
+    val onReplacementsChange = UpdateListeners()
+    val onActiveClassChange = UpdateListeners()
 
     fun show() {
         replacements.forEach { it.show() }
@@ -62,7 +72,7 @@ class Example(
 
     fun addReplacement(replacement: Replacement) {
         replacements += replacement
-        onReplacementChange.call()
+        onReplacementsChange.call()
     }
 
     fun removeReplacement(replacement: Replacement) {
@@ -70,7 +80,7 @@ class Example(
 
         replacements -= replacement
         replacement.dispose()
-        onReplacementChange.call()
+        onReplacementsChange.call()
     }
 
     fun dispose() {

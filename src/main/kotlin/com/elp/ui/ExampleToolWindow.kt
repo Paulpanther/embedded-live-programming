@@ -30,6 +30,8 @@ class ExampleToolWindowFactory: ToolWindowFactory {
                 if (event.operation == ContentManagerEvent.ContentOperation.add) {
                     val example = exampleForContent(event.content) ?: return
                     project.exampleService.activeExample = example
+                } else if (event.operation == ContentManagerEvent.ContentOperation.remove)  {
+                    project.exampleService.activeExample = null
                 }
             }
         })
@@ -49,7 +51,7 @@ class ExampleToolWindowFactory: ToolWindowFactory {
         toolWindow.contentManager.apply {
             val splitter = OnePixelSplitter()
             splitter.firstComponent = editor.component
-            splitter.secondComponent = ExampleToolWindowSettingsView(project)
+            splitter.secondComponent = ExampleToolWindowSettingsView(project, example)
 
             val content = factory.createContent(splitter, "Example", false)
             tabs += ExampleTab(example, content)

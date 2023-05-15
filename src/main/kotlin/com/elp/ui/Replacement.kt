@@ -20,6 +20,7 @@ import com.intellij.ui.BalloonImpl
 import com.intellij.ui.BalloonImpl.ShadowBorderProvider
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.awt.RelativePoint
+import com.intellij.util.application
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.PositionTracker
 import com.jetbrains.cidr.lang.OCFileType
@@ -32,7 +33,7 @@ import javax.swing.JPanel
 
 class Replacement(
     private val editor: Editor,
-    private val target: PsiElement
+    val target: PsiElement
 ) {
     private val project = target.project
     private var inlay: Inlay<EmptyInlayElementRenderer>
@@ -53,16 +54,21 @@ class Replacement(
     init {
         inlay = createAndShowInlay()
         highlight = createAndShowHighlight()
-        balloon = createBalloon()
+        balloon = createAndShowBalloon()
 
-        project.exampleService.activeExample.addReplacement(this)
-
-        balloon.show(InlayPositionTracker(editor, inlay), Balloon.Position.above)
+        project.exampleService.getActiveExampleOrShowError("Please create an Example in the Example-Toolbar before creating a Replacement") {
+            it.addReplacement(this)
+        }
     }
 
     private fun onCloseAction() {
-        project.exampleService.activeExample.removeReplacement(this)
+        project.exampleService.activeExample?.removeReplacement(this)
     }
+
+    val targetText get() = target.text
+    val targetFile get() = target.containingFile.name
+    val targetLine get() = editor.offsetToVisualLine(target.startOffset, false)
+    val replacementText get() = editorField?.field?.document?.text ?: "undefined"
 
     fun dispose() {
         if (disposed) return
@@ -70,7 +76,7 @@ class Replacement(
 
         hide(check = false)
         balloon.dispose()
-        project.exampleService.activeExample.removeReplacement(this)
+        project.exampleService.activeExample?.removeReplacement(this)
     }
 
     fun hide(check: Boolean = true) {
@@ -88,7 +94,7 @@ class Replacement(
 
         inlay = createAndShowInlay()
         highlight = createAndShowHighlight()
-        balloon = createBalloon()
+        balloon = createAndShowBalloon()
     }
 
     private fun createAndShowHighlight(): RangeHighlighter {
@@ -110,16 +116,16 @@ class Replacement(
             EmptyInlayElementRenderer())!!
     }
 
-    private fun createBalloon() = (JBPopupFactory.getInstance()
+    private fun createAndShowBalloon() = (JBPopupFactory.getInstance()
         .createBalloonBuilder(createBalloonContent())
         .setCloseButtonEnabled(false)
-//            .setFillColor(EditorColors.NOTIFICATION_BACKGROUND.defaultColor)
         .setHideOnAction(false)
         .setHideOnKeyOutside(false)
         .setHideOnClickOutside(false)
         .createBalloon() as BalloonImpl)
         .apply {
             setShadowBorderProvider(NoShadowBorderProvider())
+            show(InlayPositionTracker(editor, inlay), Balloon.Position.above)
         }
 
     private fun createBalloonContent(): JPanel {
@@ -149,6 +155,10 @@ class Replacement(
 
         return content
     }
+
+    override fun toString(): String {
+        return "$targetFile:$targetLine \"$targetText\" -> \"$replacementText\""
+    }
 }
 
 private class ReplacementEditor(
@@ -158,11 +168,14 @@ private class ReplacementEditor(
     val field: EditorTextField
 
     init {
-        val code = OCElementFactory.expressionCodeFragmentCpp("123456789", project, target, true, true)
-        val doc = PsiDocumentManager.getInstance(project).getDocument(code)!!
-
-        field = EditorTextField(doc, project, OCFileType.INSTANCE).apply {
+        field = EditorTextField(project, OCFileType.INSTANCE).apply {
             border = BorderFactory.createEmptyBorder()
+        }
+
+        application.runWriteAction {
+            val code = OCElementFactory.expressionCodeFragmentCpp("123456789", project, target, true, true)
+            val doc = PsiDocumentManager.getInstance(project).getDocument(code)!!
+            field.document = doc
         }
 
 //        doc.addDocumentListener(object : DocumentListener {
