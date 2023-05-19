@@ -22,31 +22,37 @@ import kotlin.reflect.KClass
  * Find Probes
  * Store unfinished ProbePresentations in Service
  * Rewrite copy of file with probes
- * Send file to runner
  **/
-object FileAnalyzer {
-    fun analyze(files: List<PsiFile>) {
-        val probePerFile = mutableMapOf<PsiFile, List<PsiProbeLocation>>()
+object FileProbeInstrumentalization {
+    fun run(files: List<PsiFile>, consumer: (files: Map<PsiFile, PsiFile>) -> Unit) {
+        val probesPerFile = extractProbes(files)
 
-        var i = 0
-        for (file in files) {
-            val psiProbes = findProbeElements(file)
-            val probes = psiProbes.map {
-                it.code = i
-                ProbePresentation(i++, it.range)
-            }
+        for ((file, probeLocations) in probesPerFile) {
+            val probes = probeLocations.map { ProbePresentation(it.code, it.range) }
             probeService.probes[file.virtualFile.path] = probes.toMutableList()
-            probePerFile[file] = psiProbes
         }
 
         invokeLater {
             runWriteAction {
                 executeCommand {
-                    val clones = probePerFile.map { (file, probes) -> generateInstrumentedFile(file, probes) }
-                    probeService.runner.executeFiles(clones)
+                    val clones = probesPerFile
+                        .map { (file, probes) -> file to generateInstrumentedFile(file, probes) }
+                        .toMap()
+                    consumer(clones)
                 }
             }
         }
+    }
+
+    private fun extractProbes(files: List<PsiFile>): Map<PsiFile, List<PsiProbeLocation>> {
+        val probePerFile = mutableMapOf<PsiFile, List<PsiProbeLocation>>()
+
+        var i = 0
+        for (file in files) {
+            probePerFile[file] = findProbeElements(file).onEach { it.code = i++ }
+        }
+
+        return probePerFile
     }
 
     private fun generateInstrumentedFile(file: PsiFile, psiProbes: List<PsiProbeLocation>): PsiFile {
