@@ -51,7 +51,7 @@ class Example(
     private val project: Project,
 ) {
     val replacements = mutableListOf<Replacement>()
-    val file: PsiFile = PsiFileFactory.getInstance(project).createFileFromText(OCLanguage.getInstance(), "void setup() {\n\t\n}\n\nvoid loop() {\n\t\n}")
+    val file: PsiFile = PsiFileFactory.getInstance(project).createFileFromText(OCLanguage.getInstance(), "static Main* setup() {\n\t\n}\n\nvoid loop() {\n\t\n}")
     val document = PsiDocumentManager.getInstance(project).getDocument(file) ?: error("")
 
     var activeClass: OCStructSymbol? = null
