@@ -1,9 +1,11 @@
 package com.elp.events
 
 import com.elp.exampleService
+import com.elp.getAllOpenOpenFiles
 import com.elp.logic.FileProbeInstrumentalization
 import com.elp.logic.FileExampleInstrumentalization
 import com.elp.logic.error
+import com.elp.openProject
 import com.elp.probeService
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
@@ -24,13 +26,8 @@ class FileChangeListener : FileDocumentManagerListener {
     }
 
     override fun beforeDocumentSaving(document: Document) {
-        val project = ProjectManager.getInstance().openProjects.first()
-        val root =
-            ModuleManager.getInstance(project).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull() ?: return
-        val src = root.children.find { it.name == "src" } ?: return
-        val include = root.children.find { it.name == "include" } ?: return
-        val files = src.recursiveChildren + include.recursiveChildren.filter { it.name != "code.h" }  // TODO remove the filter
-        val psiFiles = files.map { PsiManager.getInstance(project).findFile(it) ?: error("No psi for file ${it.path}") }
+        val project = openProject ?: return
+        val psiFiles = project.getAllOpenOpenFiles() ?: return
 
         FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
             buildRunnableProject(project, oldToNewFiles) {
@@ -80,4 +77,3 @@ class FileChangeListener : FileDocumentManagerListener {
             .apply { name = "________main.cpp" }
 }
 
-private val VirtualFile.recursiveChildren get(): List<VirtualFile> = children.flatMap { it.recursiveChildren + it }
