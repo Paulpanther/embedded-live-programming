@@ -1,7 +1,7 @@
 package com.elp.events
 
 import com.elp.exampleService
-import com.elp.getAllOpenOpenFiles
+import com.elp.getAllOpenFiles
 import com.elp.logic.FileProbeInstrumentalization
 import com.elp.logic.FileExampleInstrumentalization
 import com.elp.logic.error
@@ -9,16 +9,10 @@ import com.elp.openProject
 import com.elp.probeService
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
-import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.ProjectManager
-import com.intellij.openapi.project.rootManager
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiManager
 import com.jetbrains.cidr.lang.OCLanguage
-import com.jetbrains.cidr.lang.util.OCElementFactory
 
 class FileChangeListener : FileDocumentManagerListener {
     init {
@@ -27,7 +21,7 @@ class FileChangeListener : FileDocumentManagerListener {
 
     override fun beforeDocumentSaving(document: Document) {
         val project = openProject ?: return
-        val psiFiles = project.getAllOpenOpenFiles() ?: return
+        val psiFiles = project.getAllOpenFiles() ?: return
 
         FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
             buildRunnableProject(project, oldToNewFiles) {
@@ -45,7 +39,7 @@ class FileChangeListener : FileDocumentManagerListener {
         val example = project.exampleService.activeExample
             ?: return project.error("Create an example to run the project")
 
-        val file = oldFiles.find { it.virtualFile == example.activeClass?.containingFile }
+        val file = oldFiles.find { it.virtualFile == example.clazz.containingFile }
             ?: return project.error("Active Example has no valid class assigned to it")
         val newFile = oldToNewFiles[file]
             ?: return project.error("Could not generate instrumentalized classes")

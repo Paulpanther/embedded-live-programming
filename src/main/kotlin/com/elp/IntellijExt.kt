@@ -4,19 +4,22 @@ import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
+import com.intellij.openapi.editor.Document
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
 import javax.swing.Icon
 
 val openProject get() = ProjectManager.getInstance().openProjects.firstOrNull()
 
-fun Project.getAllOpenOpenFiles(): List<PsiFile>? {
+fun Project.getAllOpenFiles(): List<PsiFile>? {
     val root =
         ModuleManager.getInstance(this).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull() ?: return null
     val src = root.children.find { it.name == "src" } ?: return null
@@ -35,3 +38,8 @@ fun dumbActionButton(text: String, description: String, icon: Icon, callback: (e
     }
     return ActionButton(action, action.templatePresentation.clone(), ActionPlaces.UNKNOWN, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
 }
+
+fun Document.getPsiFile(project: Project) = PsiDocumentManager.getInstance(project).getPsiFile(this)
+fun VirtualFile.getPsiFile(project: Project) = PsiManager.getInstance(project).findFile(this)
+val PsiFile.document get() = PsiDocumentManager.getInstance(project).getDocument(this)
+val VirtualFile.document get() = FileDocumentManager.getInstance().getDocument(this)

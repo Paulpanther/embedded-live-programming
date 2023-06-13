@@ -28,8 +28,8 @@ object FileExampleInstrumentalization {
         val project = file.project
 
         val clazz = classes
-            .find { it.name == example.activeClass?.name }
-            ?: return project.error("Could not find class \"${example.activeClass?.name}\" in file \"${file.name}\"")
+            .find { it.name == example.clazz.name }
+            ?: return project.error("Could not find class \"${example.clazz.name}\" in file \"${file.name}\"")
 
         val exampleFunctions = PsiTreeUtil.findChildrenOfType(example.file, OCFunctionDefinition::class.java)
         val setupFunction = exampleFunctions.find { it.name == "setup" }
