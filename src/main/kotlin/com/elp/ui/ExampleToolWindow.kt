@@ -29,7 +29,7 @@ class ExampleToolWindowFactory : ToolWindowFactory {
             }
 
             leftSplitter.firstComponent = ExampleToolWindowClassesView(project, ::setClazz)
-            leftSplitter.secondComponent = null
+            leftSplitter.secondComponent = ExamplesEditorView(project, null, this)
 
             val content = factory.createContent(leftSplitter, "Examples", false)
             addContent(content)

@@ -9,7 +9,7 @@ import com.intellij.ui.tabs.impl.JBEditorTabs
 
 class ExamplesEditorView(
     project: Project,
-    private val clazz: ExampleClass,
+    private val clazz: ExampleClass?,
     parent: Disposable
 ): JBEditorTabs(project, null, parent) {
     init {
