@@ -1,6 +1,6 @@
 package com.elp.ui
 
-import com.elp.exampleService
+import com.elp.services.exampleService
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer

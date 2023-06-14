@@ -19,6 +19,7 @@ import javax.swing.Icon
 
 val openProject get() = ProjectManager.getInstance().openProjects.firstOrNull()
 
+@Deprecated("Use ClassService")
 fun Project.getAllOpenFiles(): List<PsiFile>? {
     val root =
         ModuleManager.getInstance(this).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull() ?: return null

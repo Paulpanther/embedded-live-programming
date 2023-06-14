@@ -1,12 +1,12 @@
 package com.elp.events
 
-import com.elp.exampleService
+import com.elp.services.exampleService
 import com.elp.getAllOpenFiles
 import com.elp.logic.FileProbeInstrumentalization
 import com.elp.logic.FileExampleInstrumentalization
 import com.elp.logic.error
 import com.elp.openProject
-import com.elp.probeService
+import com.elp.services.probeService
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.project.Project

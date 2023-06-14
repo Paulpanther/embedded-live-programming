@@ -1,18 +1,13 @@
 package com.elp.logic
 
-import com.elp.Example
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
+import com.elp.services.Example
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
-import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.cidr.lang.OCLanguage
-import com.jetbrains.cidr.lang.psi.OCClassDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.types.OCPointerType

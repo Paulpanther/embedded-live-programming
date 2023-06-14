@@ -1,26 +1,18 @@
-package com.elp
+package com.elp.services
 
+import com.elp.getPsiFile
 import com.elp.ui.Replacement
 import com.elp.util.ExampleNotification
 import com.elp.util.UpdateListeners
-import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.PsiManager
 import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCImplementation
-import com.jetbrains.cidr.lang.psi.impl.OCStructImpl
-import com.jetbrains.cidr.lang.symbols.cpp.OCStructSymbol
-
-typealias ExampleClass = OCImplementation
 
 @Service
 class ExampleService(
@@ -37,18 +29,18 @@ class ExampleService(
             field = value
         }
 
-    fun examplesOfClass(clazz: ExampleClass): List<Example> {
-        return examples.filter { it.clazz == clazz }
-    }
-
-    fun addNewExample(file: PsiFile): Example {
-        val clazz = PsiTreeUtil.findChildOfType(file, ExampleClass::class.java) ?: error("Could not find class in file")
-        val exampleFile = createExampleFile(clazz) ?: error("Could not create file")
-        val newExample = Example(project, clazz, exampleFile, "Example")
-        examples += newExample
-        activeExample = newExample
-        return newExample
-    }
+//    fun examplesOfClass(clazz: C): List<Example> {
+//        return examples.filter { it.clazz == clazz }
+//    }
+//
+//    fun addNewExample(file: PsiFile): Example {
+//        val clazz = PsiTreeUtil.findChildOfType(file, ExampleClass::class.java) ?: error("Could not find class in file")
+//        val exampleFile = createExampleFile(clazz) ?: error("Could not create file")
+//        val newExample = Example(project, clazz, exampleFile, "Example")
+//        examples += newExample
+//        activeExample = newExample
+//        return newExample
+//    }
 
     fun getActiveExampleOrShowError(error: String, consumer: (example: Example) -> Unit) {
         val example = activeExample
@@ -70,19 +62,19 @@ class ExampleService(
         return existingExampleDir ?: root.createChildDirectory(this, "examples")
     }
 
-    private fun createExampleFile(clazz: ExampleClass): PsiFile? {
-        val name = "${clazz.name}.example.h"
-        val file = exampleDirectory.createChildData(this, name)
-        file.getOutputStream(this).bufferedWriter().write("class Main {};")
-        return file.getPsiFile(project)
-    }
+//    private fun createexamplefile(clazz: exampleclass): psifile? {
+//        val name = "${clazz.name}.example.h"
+//        val file = exampleDirectory.createChildData(this, name)
+//        file.getOutputStream(this).bufferedWriter().write("class Main {};")
+//        return file.getPsiFile(project)
+//    }
 }
 
 val Project.exampleService get() = this.service<ExampleService>()
 
 class Example(
     private val project: Project,
-    val clazz: ExampleClass,
+    val clazz: OCImplementation,
     val file: PsiFile,
     var name: String,
 ) {

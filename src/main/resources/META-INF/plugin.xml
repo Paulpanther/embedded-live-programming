@@ -8,15 +8,16 @@
     <depends>com.intellij.cidr.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <applicationService serviceImplementation="com.elp.ProbeService" />
-        <projectService serviceImplementation="com.elp.ExampleService" />
+        <applicationService serviceImplementation="com.elp.services.ProbeService" />
+        <projectService serviceImplementation="com.elp.services.ExampleService" />
+        <projectService serviceImplementation="com.elp.services.ClassService" />
         <statusBarWidgetFactory implementation="com.elp.ui.HITLWidgetFactory" />
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.ProbeInlayProvider" />
         <fileDocumentManagerListener implementation="com.elp.events.FileChangeListener" />
         <intentionAction>
             <className>com.elp.actions.ReplacementAction</className>
         </intentionAction>
-        <toolWindow factoryClass="com.elp.ui.ExampleToolWindowFactory" id="Examples" anchor="bottom" canCloseContents="true"/>
+        <toolWindow factoryClass="com.elp.ui.toolWindow.ExampleToolWindowFactory" id="Examples" anchor="bottom" canCloseContents="true"/>
         <notificationGroup id="Embedded Live Programming Notification Group" displayType="BALLOON" />
     </extensions>
 </idea-plugin>

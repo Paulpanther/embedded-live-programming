@@ -1,4 +1,4 @@
-package com.elp
+package com.elp.services
 
 import com.elp.logic.ProbeUpdateController
 import com.elp.logic.Runner

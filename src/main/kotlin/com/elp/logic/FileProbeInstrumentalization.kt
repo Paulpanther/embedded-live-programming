@@ -1,6 +1,6 @@
 package com.elp.logic
 
-import com.elp.probeService
+import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction

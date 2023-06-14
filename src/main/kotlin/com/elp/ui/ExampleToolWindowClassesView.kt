@@ -1,9 +1,9 @@
 package com.elp.ui
 
-import com.elp.ExampleClass
 import com.elp.dumbActionButton
 import com.elp.getAllOpenFiles
 import com.elp.panel
+import com.elp.services.Clazz
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
@@ -15,7 +15,7 @@ import javax.swing.*
 
 class ExampleToolWindowClassesView(
     private val project: Project,
-    private val onClassSelected: (clazz: ExampleClass) -> Unit,
+    private val onClassSelected: (clazz: Clazz) -> Unit,
 ) : JPanel() {
     private val model = project.getAllOpenFiles() ?: listOf()
 
@@ -41,7 +41,7 @@ class ExampleToolWindowClassesView(
         dumbActionButton("Select as Example", "Select this class as Entrypoint", AllIcons.Actions.Execute) {
             println(file)
             if (clazz != null) {
-                onClassSelected(clazz)
+//                onClassSelected(clazz)
             }
         }.also { add(it, BorderLayout.LINE_END) }
 

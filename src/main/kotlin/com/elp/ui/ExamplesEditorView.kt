@@ -1,15 +1,15 @@
 package com.elp.ui
 
-import com.elp.ExampleClass
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.EditorTextField
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.impl.JBEditorTabs
+import com.jetbrains.cidr.lang.psi.OCImplementation
 
 class ExamplesEditorView(
     project: Project,
-    private val clazz: ExampleClass?,
+    private val clazz: OCImplementation?,
     parent: Disposable
 ): JBEditorTabs(project, null, parent) {
     init {

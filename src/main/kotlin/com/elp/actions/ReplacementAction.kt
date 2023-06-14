@@ -1,6 +1,6 @@
 package com.elp.actions
 
-import com.elp.exampleService
+import com.elp.services.exampleService
 import com.elp.ui.Replacement
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor

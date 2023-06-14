@@ -2,7 +2,7 @@
 
 package com.elp.ui
 
-import com.elp.probeService
+import com.elp.services.probeService
 import com.intellij.codeInsight.hints.*
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.impl.EditorImpl
