@@ -41,6 +41,11 @@ class TabbedExamplesView(
         val toolbarComponent = JPanel()
         toolbar.targetComponent = toolbarComponent
         toolbarComponent.add(toolbar.component)
+        
+        tabs.setSelectionChangeHandler { info, _, doChangeSelection ->
+            (info.`object` as? Example)?.makeActive()
+            doChangeSelection.run()
+        }
 
         tabs.presentation.apply {
             setEmptyText("There are no examples here yet")
@@ -56,12 +61,20 @@ class TabbedExamplesView(
 
     val component = wrapper
 
-    private fun addTabFor(example: Example) {
+    fun makeActive() {
+        val selected = tabs.selectedInfo?.`object` as? Example ?: return
+        selected.makeActive()
+    }
+
+    private fun addTabFor(example: Example, focus: Boolean = false) {
         val document = PsiDocumentManager.getInstance(project).getDocument(example.file) ?: error("Could not get document for new example")
         val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
-        tabs.addTab(TabInfo(editor).apply {
+        val info = TabInfo(editor).apply {
+            setObject(example)
             text = example.name
-        })
+        }
+        tabs.addTab(info)
+        if (focus) tabs.select(info, true)
     }
 
     private fun createAndAddExample() {
@@ -82,7 +95,7 @@ class TabbedExamplesView(
         }
         if (dialog.showAndGet()) {
             clazz.addExample(field.text) {
-                addTabFor(it)
+                addTabFor(it, true)
             }
         }
     }

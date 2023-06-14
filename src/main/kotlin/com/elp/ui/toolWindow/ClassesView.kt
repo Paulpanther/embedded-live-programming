@@ -36,6 +36,7 @@ class ClassesView(
                 if (it.valueIsAdjusting) return@addListSelectionListener
                 val clazz = selectedValue ?: return@addListSelectionListener
                 val view = exampleViews.getOrCreate(clazz) { TabbedExamplesView(project, clazz, parentDisposable) }
+                view.makeActive()
                 splitter.secondComponent = view.component
             }
         }

@@ -6,6 +6,7 @@ import com.elp.logic.FileProbeInstrumentalization
 import com.elp.logic.FileExampleInstrumentalization
 import com.elp.logic.error
 import com.elp.openProject
+import com.elp.services.classService
 import com.elp.services.probeService
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
@@ -21,7 +22,7 @@ class FileChangeListener : FileDocumentManagerListener {
 
     override fun beforeDocumentSaving(document: Document) {
         val project = openProject ?: return
-        val psiFiles = project.getAllOpenFiles() ?: return
+        val psiFiles = project.classService.classes.map { it.file }
 
         FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
             buildRunnableProject(project, oldToNewFiles) {
@@ -35,12 +36,10 @@ class FileChangeListener : FileDocumentManagerListener {
         oldToNewFiles: Map<PsiFile, PsiFile>,
         finishedFilesConsumer: (files: List<PsiFile>) -> Unit
     ) {
-        val oldFiles = oldToNewFiles.keys.toList()
         val example = project.exampleService.activeExample
             ?: return project.error("Create an example to run the project")
 
-        val file = oldFiles.find { it.virtualFile == example.clazz.file }
-            ?: return project.error("Active Example has no valid class assigned to it")
+        val file = example.clazz.file
         val newFile = oldToNewFiles[file]
             ?: return project.error("Could not generate instrumentalized classes")
 

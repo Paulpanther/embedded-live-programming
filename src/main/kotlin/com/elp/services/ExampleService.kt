@@ -64,17 +64,19 @@ class ExampleService(
             error("Examples directory cannot be created.")
         }
 
-        return existingExampleDir ?: root.createChildDirectory(this, "examples")
+        return (existingExampleDir ?: root.createChildDirectory(this, "examples")).also {
+            it.children.forEach { child -> child.delete(this) }
+        }
     }
 
-    private fun createExampleFile(clazz: Clazz, callback: (PsiFile?) -> Unit) {
+    private fun createExampleFile(clazz: Clazz, callback: (VirtualFile?) -> Unit) {
         runWriteAction {
             val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
             val file = exampleDirectory.createChildData(this, name)
             val doc = file.document ?: error("Could not get document for newly created example")
             executeCommand {
                 doc.insertString(0, "class ${clazz.name} {\n\t\n};")
-                callback(file.getPsiFile(project))
+                callback(file)
             }
         }
     }
@@ -85,12 +87,13 @@ val Project.exampleService get() = this.service<ExampleService>()
 class Example(
     private val project: Project,
     val clazz: Clazz,
-    val file: PsiFile,
+    val virtualFile: VirtualFile,
     var name: String,
 ) {
     val replacements = mutableListOf<Replacement>()
-
     val onReplacementsChange = UpdateListeners()
+    val document get() = virtualFile.document ?: error("Could not get document of example")
+    val file get() = document.getPsiFile(project) ?: error("Could not get psi file of example")
 
     fun makeActive() {
         project.exampleService.activeExample = this
