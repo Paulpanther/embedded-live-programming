@@ -7,7 +7,7 @@ import com.intellij.openapi.wm.ToolWindowFactory
 class ExampleToolWindowFactory : ToolWindowFactory {
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         toolWindow.contentManager.apply {
-            val content = factory.createContent(ClassesView(project).component, null, false)
+            val content = factory.createContent(ClassesView(project, this).component, null, false)
             content.isCloseable = false
             addContent(content)
         }

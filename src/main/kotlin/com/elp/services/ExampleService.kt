@@ -1,9 +1,13 @@
 package com.elp.services
 
+import com.elp.document
 import com.elp.getPsiFile
 import com.elp.ui.Replacement
 import com.elp.util.ExampleNotification
+import com.elp.util.NamingHelper
 import com.elp.util.UpdateListeners
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.ModuleManager
@@ -11,15 +15,15 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.cidr.lang.psi.OCImplementation
+import com.intellij.util.application
+import com.jetbrains.rd.util.getOrCreate
 
 @Service
 class ExampleService(
     private val project: Project
 ) {
     val exampleDirectory = createExampleModule()
-    val examples = mutableListOf<Example>()
+    val examples = mutableMapOf<Clazz, MutableList<Example>>()
     var activeExample: Example? = null
         set(value) {
             if (field == value) return
@@ -29,18 +33,9 @@ class ExampleService(
             field = value
         }
 
-//    fun examplesOfClass(clazz: C): List<Example> {
-//        return examples.filter { it.clazz == clazz }
-//    }
-//
-//    fun addNewExample(file: PsiFile): Example {
-//        val clazz = PsiTreeUtil.findChildOfType(file, ExampleClass::class.java) ?: error("Could not find class in file")
-//        val exampleFile = createExampleFile(clazz) ?: error("Could not create file")
-//        val newExample = Example(project, clazz, exampleFile, "Example")
-//        examples += newExample
-//        activeExample = newExample
-//        return newExample
-//    }
+    fun examplesForClass(clazz: Clazz): MutableList<Example> {
+        return examples.getOrCreate(clazz) { mutableListOf() }
+    }
 
     fun getActiveExampleOrShowError(error: String, consumer: (example: Example) -> Unit) {
         val example = activeExample
@@ -48,6 +43,16 @@ class ExampleService(
             ExampleNotification.notifyError(project, error)
         } else {
             consumer(example)
+        }
+    }
+
+    fun addExampleToClass(clazz: Clazz, name: String, callback: (Example) -> Unit) {
+        createExampleFile(clazz) { file ->
+            file ?: error("Could not create example file")
+            val example = Example(project, clazz, file, name)
+            examplesForClass(clazz) += example
+            activeExample = example
+            callback(example)
         }
     }
 
@@ -62,25 +67,38 @@ class ExampleService(
         return existingExampleDir ?: root.createChildDirectory(this, "examples")
     }
 
-//    private fun createexamplefile(clazz: exampleclass): psifile? {
-//        val name = "${clazz.name}.example.h"
-//        val file = exampleDirectory.createChildData(this, name)
-//        file.getOutputStream(this).bufferedWriter().write("class Main {};")
-//        return file.getPsiFile(project)
-//    }
+    private fun createExampleFile(clazz: Clazz, callback: (PsiFile?) -> Unit) {
+        runWriteAction {
+            val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
+            val file = exampleDirectory.createChildData(this, name)
+            val doc = file.document ?: error("Could not get document for newly created example")
+            executeCommand {
+                doc.insertString(0, "class ${clazz.name} {\n\t\n};")
+                callback(file.getPsiFile(project))
+            }
+        }
+    }
 }
 
 val Project.exampleService get() = this.service<ExampleService>()
 
 class Example(
     private val project: Project,
-    val clazz: OCImplementation,
+    val clazz: Clazz,
     val file: PsiFile,
     var name: String,
 ) {
     val replacements = mutableListOf<Replacement>()
 
     val onReplacementsChange = UpdateListeners()
+
+    fun makeActive() {
+        project.exampleService.activeExample = this
+    }
+
+    fun makeDeactive() {
+        project.exampleService.activeExample = null
+    }
 
     fun show() {
         replacements.forEach { it.show() }

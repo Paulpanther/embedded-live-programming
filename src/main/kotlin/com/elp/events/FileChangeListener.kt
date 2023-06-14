@@ -39,7 +39,7 @@ class FileChangeListener : FileDocumentManagerListener {
         val example = project.exampleService.activeExample
             ?: return project.error("Create an example to run the project")
 
-        val file = oldFiles.find { it.virtualFile == example.clazz.containingFile }
+        val file = oldFiles.find { it.virtualFile == example.clazz.file }
             ?: return project.error("Active Example has no valid class assigned to it")
         val newFile = oldToNewFiles[file]
             ?: return project.error("Could not generate instrumentalized classes")
