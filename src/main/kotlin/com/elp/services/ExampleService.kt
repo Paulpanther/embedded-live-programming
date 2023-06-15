@@ -2,6 +2,7 @@ package com.elp.services
 
 import com.elp.document
 import com.elp.getPsiFile
+import com.elp.logic.Modification
 import com.elp.ui.Replacement
 import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
@@ -94,6 +95,7 @@ class Example(
     val onReplacementsChange = UpdateListeners()
     val document get() = virtualFile.document ?: error("Could not get document of example")
     val file get() = document.getPsiFile(project) ?: error("Could not get psi file of example")
+    var modifications = listOf<Modification>()
 
     fun makeActive() {
         project.exampleService.activeExample = this

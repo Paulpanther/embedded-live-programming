@@ -1,13 +1,14 @@
 package com.elp.events
 
-import com.elp.services.exampleService
-import com.elp.getAllOpenFiles
-import com.elp.logic.FileProbeInstrumentalization
+import com.elp.error
 import com.elp.logic.FileExampleInstrumentalization
-import com.elp.logic.error
+import com.elp.logic.FileProbeInstrumentalization
 import com.elp.openProject
 import com.elp.services.classService
+import com.elp.services.exampleService
 import com.elp.services.probeService
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.codeInsight.hints.InlayHintsPassFactory
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.project.Project
@@ -43,12 +44,17 @@ class FileChangeListener : FileDocumentManagerListener {
         val newFile = oldToNewFiles[file]
             ?: return project.error("Could not generate instrumentalized classes")
 
-        FileExampleInstrumentalization.run(example, newFile) { exampleFile, exampleClassName ->
+        FileExampleInstrumentalization.run(example, newFile) { exampleFile, exampleClassName, modifications ->
             // Replace file in list
             val finishedFiles = oldToNewFiles.map { (oldFile, newFile) ->
                 if (oldFile == file) exampleFile else newFile
             }
             finishedFilesConsumer(finishedFiles + createRunnerFile(project, exampleClassName, exampleFile.name))
+
+            example.modifications = modifications
+            @Suppress("UnstableApiUsage")
+            InlayHintsPassFactory.forceHintsUpdateOnNextPass()
+            DaemonCodeAnalyzer.getInstance(project).restart(file)
         }
     }
 

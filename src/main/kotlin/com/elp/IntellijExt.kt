@@ -1,5 +1,7 @@
 package com.elp
 
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -26,7 +28,7 @@ fun Project.getAllOpenFiles(): List<PsiFile>? {
     val src = root.children.find { it.name == "src" } ?: return null
     val include = root.children.find { it.name == "include" } ?: return null
     val files = src.recursiveChildren + include.recursiveChildren.filter { it.name != "code.h" }  // TODO remove the filter
-    return files.map { PsiManager.getInstance(this).findFile(it) ?: error("No psi for file ${it.path}") }
+    return files.mapNotNull { PsiManager.getInstance(this).findFile(it) }
 }
 
 val VirtualFile.recursiveChildren get(): List<VirtualFile> = children.flatMap { it.recursiveChildren + it }
@@ -38,6 +40,14 @@ fun dumbActionButton(text: String, description: String, icon: Icon, callback: (e
         }
     }
     return ActionButton(action, action.templatePresentation.clone(), ActionPlaces.UNKNOWN, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+}
+
+fun Project.error(content: String) {
+    NotificationGroupManager
+        .getInstance()
+        .getNotificationGroup("Embedded Live Programming Notification Group")
+        .createNotification(content, NotificationType.ERROR)
+        .notify(this)
 }
 
 fun Document.getPsiFile(project: Project) = PsiDocumentManager.getInstance(project).getPsiFile(this)
