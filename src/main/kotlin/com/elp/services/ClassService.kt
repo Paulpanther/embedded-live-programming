@@ -71,9 +71,6 @@ class ClassService(
         return files.mapNotNull { PsiManager.getInstance(project).findFile(it) }
     }
 
-    private fun registerListenersOnFiles() {
-    }
-
     private fun findClasses(): List<Clazz> {
         return files
             .mapNotNull { PsiTreeUtil.findChildOfType(it, OCStruct::class.java) }

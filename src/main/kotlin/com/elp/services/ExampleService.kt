@@ -66,7 +66,9 @@ class ExampleService(
         }
 
         return (existingExampleDir ?: root.createChildDirectory(this, "examples")).also {
-            it.children.forEach { child -> child.delete(this) }
+            runWriteAction {
+                it.children.forEach { child -> child.delete(this) }
+            }
         }
     }
 

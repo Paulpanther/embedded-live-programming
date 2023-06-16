@@ -5,18 +5,23 @@ import com.elp.services.Example
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
-import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.PsiTreeUtil
 import com.jetbrains.cidr.lang.OCLanguage
+import com.jetbrains.cidr.lang.psi.OCDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCStruct
+import com.jetbrains.cidr.lang.types.OCStructType
 
 object FileExampleInstrumentalization {
-    fun run(example: Example, file: PsiFile, consumer: (file: PsiFile, className: String, modifications: List<Modification>) -> Unit) {
+    fun run(
+        example: Example,
+        file: PsiFile,
+        consumer: (file: PsiFile, className: String, modifications: List<Modification>) -> Unit
+    ) {
         val clone = PsiFileFactory
             .getInstance(file.project)
             .createFileFromText(file.name, OCLanguage.getInstance(), file.text)
@@ -33,8 +38,20 @@ object FileExampleInstrumentalization {
         val mapping =
             newFunctions.associateWith { newFunction -> oldFunctions.find { oldFunction -> newFunction.signature equalsIgnoreFile oldFunction.signature } }
         val functionsToRemove = mapping.values.filterNotNull()
+        val functionsNewlyAdded = mapping.keys.filter { mapping[it] == null }
 
-        val modifications = functionsToRemove.map { Modification.ReplaceFunction(it.signature) }
+        val membersInExample = getMembers(example.file)
+        val membersInClass = getMembers(clone)
+        val membersMapping =
+            membersInExample.associateWith { exampleMember -> membersInClass.find { classMember -> exampleMember.signature equalsIgnoreFile classMember.signature } }
+        val membersToReplace = membersMapping.values.filterNotNull()
+        val membersToAdd = membersMapping.keys.filter { membersMapping[it] == null }
+
+        val modifications =
+            functionsToRemove.map { Modification.ReplaceFunction(it.signature) } +
+                    functionsNewlyAdded.map { Modification.AddedFunction(it.signature) } +
+                    membersToReplace.map { Modification.ReplaceMember(it.signature) } +
+                    membersToAdd.map { Modification.AddedMember(it.signature) }
 
         invokeLater {
             runWriteAction {
@@ -52,24 +69,55 @@ object FileExampleInstrumentalization {
             }
         }
     }
+
+    private fun getMembers(file: PsiFile): List<OCDeclaration> {
+        return PsiTreeUtil.findChildrenOfType(file, OCDeclaration::class.java)
+            .filter { it !is OCFunctionDefinition && it.type !is OCStructType }
+    }
 }
 
-val OCFunctionDefinition.signature get() = Signature(this)
+val OCFunctionDefinition.signature get() = Signature.Function(this)
+val OCDeclaration.signature get() = Signature.Field(this)
 
-data class Signature(
+sealed class Signature(
     val file: String,
     val name: String?,
-    val parameters: List<String>,
-    val isStatic: Boolean
+    val isStatic: Boolean,
 ) {
-    constructor(function: OCFunctionDeclaration)
-            : this(function.containingFile.name, function.name, function.parameters?.map { it.name } ?: listOf(), function.isStatic)
+    class Function(
+        file: String,
+        name: String?,
+        val parameters: List<String>,
+        isStatic: Boolean
+    ) : Signature(file, name, isStatic) {
+        constructor(function: OCFunctionDefinition): this(
+            function.containingFile.name,
+            function.name,
+            function.parameters?.map { it.name } ?: listOf(),
+            function.isStatic)
+    }
 
-    infix fun equalsIgnoreFile(o: Signature) = name == o.name && parameters == o.parameters && isStatic == o.isStatic
+    class Field(
+        file: String,
+        name: String?,
+        val type: String,
+        isStatic: Boolean
+    ) : Signature(file, name, isStatic) {
+        constructor(field: OCDeclaration): this(
+            field.containingFile.name,
+            field.declarators.firstOrNull()?.name,
+            field.type.name,
+            field.isStatic)
 
-    override fun toString() = "${if (isStatic) "static " else ""}${name}(${parameters.joinToString(", ")})"
+        override fun equals(o: Any?) =
+            o is Field && o.file == file && o.name == name && o.isStatic == isStatic
+    }
+
+    override fun equals(o: Any?) =
+        o is Signature && o.file == file && o.name == name && o.isStatic == isStatic
 }
 
 sealed class Modification {
-    class ReplaceFunction(val signature: Signature): Modification()
+    class ReplaceFunction(val signature: Signature) : Modification()
+    class AddedFunction(val signature: Signature) : Modification()
 }
