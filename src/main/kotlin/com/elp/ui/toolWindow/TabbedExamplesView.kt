@@ -67,9 +67,7 @@ class TabbedExamplesView(
     }
 
     private fun addTabFor(example: Example, focus: Boolean = false) {
-        val document = PsiDocumentManager.getInstance(project).getDocument(example.file) ?: error("Could not get document for new example")
-        val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
-        val info = TabInfo(editor).apply {
+        val info = TabInfo(example.editor).apply {
             setObject(example)
             text = example.name
         }

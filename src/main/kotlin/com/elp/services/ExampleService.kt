@@ -1,6 +1,7 @@
 package com.elp.services
 
 import com.elp.document
+import com.elp.error
 import com.elp.getPsiFile
 import com.elp.logic.Modification
 import com.elp.ui.Replacement
@@ -11,12 +12,15 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
+import com.intellij.ui.EditorTextField
 import com.intellij.util.application
+import com.jetbrains.cidr.lang.OCFileType
 import com.jetbrains.rd.util.getOrCreate
 
 @Service
@@ -98,6 +102,7 @@ class Example(
     val document get() = virtualFile.document ?: error("Could not get document of example")
     val file get() = document.getPsiFile(project) ?: error("Could not get psi file of example")
     var modifications = listOf<Modification>()
+    val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
 
     fun makeActive() {
         project.exampleService.activeExample = this
@@ -105,6 +110,11 @@ class Example(
 
     fun makeDeactive() {
         project.exampleService.activeExample = null
+    }
+
+    fun navigateTo(descriptor: OpenFileDescriptor) {
+        editor.component.requestFocusInWindow()
+        descriptor.navigateIn(editor.editor ?: return project.error("Could not navigate to element"))
     }
 
     fun show() {
