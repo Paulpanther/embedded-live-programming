@@ -15,14 +15,9 @@ import com.intellij.openapi.editor.ex.util.EditorUtil
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.dsl.builder.panel
-import com.jetbrains.cidr.lang.psi.OCDeclaration
-import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
-import com.jetbrains.cidr.lang.psi.OCStatement
 import com.jetbrains.cidr.lang.psi.OCStruct
 import javax.swing.JComponent
 
@@ -51,27 +46,18 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             if (example == null || file != example.clazz.file || element !is PsiFile) return false
             val struct = element.struct ?: return false
 
-            collectFunctionReplacement(struct)
-            collectMemberReplacement(struct)
-            collectAddedFunctionsAndMembers(struct)
+            collectReplacements(struct)
+            collectAdditions(struct)
             return true
         }
 
-        private fun collectAddedFunctionsAndMembers(struct: OCStruct) {
+        private fun collectAdditions(struct: OCStruct) {
             val offset = struct.functionsStartOffset
-            val added = (example ?: return).modifications
-                .mapNotNull {
-                    when (it) {
-                        is Modification.AddedFunction -> it.signature
-                        is Modification.AddedMember -> it.signature
-                        else -> null
-                    }
-                }
+            val added = (example ?: return).modifications.filterAdditions()
             if (added.isEmpty()) return
 
             var p: InlayPresentation = VerticalListInlayPresentation(added.map {
-                navigable("+ $it", it)
-                factory.smallText("+ $it")
+                navigable("+ ${it.added}", it.added.element.navigable)
             })
             val firstMember = struct.members.firstOrNull()
             if (firstMember != null) {
@@ -87,54 +73,41 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             )
         }
 
-        private fun collectFunctionReplacement(struct: OCStruct) {
-            val functions = struct.functions
-            for (function in functions) {
-                val modification = (example ?: return).modifications
-                    .filterIsInstance<Modification.ReplaceFunction>()
-                    .find { it.signature == function.signature } ?: return
-
-                val descriptor = modification.original.nameIdentifier?.navigable ?: return
-                val shifted = shifted(navigable("Replaced in Example", descriptor), function)
-
-                sink.addBlockElement(
-                    function.startOffset,
-                    relatesToPrecedingText = true,
-                    showAbove = true,
-                    BlockInlayPriority.ANNOTATIONS,
-                    shifted
-                )
-            }
-        }
-
-        private fun collectMemberReplacement(struct: OCStruct) {
-            val members = struct.fields
+        private fun collectReplacements(struct: OCStruct) {
+            val members = struct.memberFunctions + struct.memberFields
+            val replacements = (example ?: return).modifications.filterReplacements()
             for (member in members) {
-                val modification = (example ?: return).modifications
-                    .filterIsInstance<Modification.ReplaceMember>()
-                    .find { it.signature == member.signature } ?: return
+                val modification = replacements
+                    .find { it.original == member } ?: continue
 
-                val value = modification.value
-                if (value == null) {
-                    val descriptor = modification.original.declarators.firstOrNull()?.navigable ?: return
-                    val shifted = shifted(navigable("Replaced in Example", descriptor), member)
+                val descriptor = modification.added.navigable ?: continue
+                if (modification.added is Member.Field) {
+                    val value = modification.added.value ?: continue
+                    val shifted = navigable(text("= $value"), descriptor)
+
+                    sink.addInlineElement(
+                        member.element.endOffset,
+                        relatesToPrecedingText = true,
+                        shifted,
+                        placeAtTheEndOfLine = false)
+                } else {
+                    val shifted = shifted(navigable("Replaced in Example", descriptor), member.element)
 
                     sink.addBlockElement(
-                        member.startOffset,
+                        member.element.startOffset,
                         relatesToPrecedingText = true,
                         showAbove = true,
                         BlockInlayPriority.ANNOTATIONS,
-                        shifted
-                    )
-                } else {
-                    val presentation = text("= $value")
-                    sink.addInlineElement(member.endOffset, true, presentation, false)
+                        shifted)
                 }
             }
         }
 
-        private fun navigable(text: String, descriptor: OpenFileDescriptor): InlayPresentation {
-            return factory.onClick(factory.smallText(text), MouseButton.Left) { _, _ ->
+        private fun navigable(text: String, descriptor: OpenFileDescriptor) =
+            navigable(factory.smallText(text), descriptor)
+
+        private fun navigable(text: InlayPresentation, descriptor: OpenFileDescriptor): InlayPresentation {
+            return factory.onClick(text, MouseButton.Left) { _, _ ->
                 example?.navigateTo(descriptor)
             }
         }

@@ -34,41 +34,23 @@ object FileExampleInstrumentalization {
         }
         val exampleClazz = example.file.struct ?: return project.error("Could not find class in example")
 
-        val newFunctions = exampleClazz.functions
-        val oldFunctions = clazz.functions
-        val mapping =
-            newFunctions.associateWith { newFunction -> oldFunctions.find { oldFunction -> newFunction.signature equalsIgnoreFile oldFunction.signature } }
-        val functionsToRemove = mapping.filter { it.value != null }
-        val functionsNewlyAdded = mapping.keys.filter { mapping[it] == null }
-
-        val membersInExample = exampleClazz.fields
-        val membersInClass = clazz.fields
-        val membersMapping =
-            membersInExample.associateWith { exampleMember -> membersInClass.find { classMember -> exampleMember.signature equalsIgnoreFile classMember.signature } }
-        val membersToReplace = membersMapping.filter { it.value != null }
-        val membersToAdd = membersMapping.keys.filter { membersMapping[it] == null }
-
-        val modifications =
-            functionsToRemove.map { Modification.ReplaceFunction(it.value!!.signature, it.key) } +
-                    functionsNewlyAdded.map { Modification.AddedFunction(it.signature, it) } +
-                    membersToReplace.map {
-                        Modification.ReplaceMember(
-                            it.value!!.signature,
-                            it.key.declarators.firstOrNull()?.initializer?.text,
-                            it.key)
-                    } +
-                    membersToAdd.map { Modification.AddedMember(it.signature, it) }
+        val membersInExample = exampleClazz.memberFunctions + exampleClazz.memberFields
+        val membersInClass = clazz.memberFunctions + clazz.memberFields
+        val modifications = membersInExample.map { exampleMember ->
+            val clazzMember = membersInClass.find { classMember -> exampleMember equalsIgnoreFile classMember }
+            Modification(exampleMember, clazzMember)
+        }
 
         invokeLater {
             runWriteAction {
                 executeCommand {
-                    for (toRemove in functionsToRemove) {
-                        toRemove.value!!.delete()
+                    for (toRemove in modifications.filterReplacements()) {
+                        toRemove.original!!.element.delete()
                     }
 
                     var anchor: PsiElement? = clazz.members.lastOrNull()
-                    for (function in newFunctions) {
-                        anchor = clazz.addAfter(function, anchor)
+                    for (modification in modifications) {
+                        anchor = clazz.addAfter(modification.added.element, anchor)
                     }
                     consumer(clone, clazz.name!!, modifications)
                 }
@@ -77,27 +59,25 @@ object FileExampleInstrumentalization {
     }
 }
 
-val OCFunctionDefinition.signature get() = Signature.Function(this)
-val OCDeclaration.signature get() = Signature.Field(this)
+fun OCFunctionDefinition.asMember() = Member.Function(this)
+fun OCDeclaration.asMember() = Member.Field(this)
 
-sealed class Signature(
-    val file: String,
-    val name: String?,
-    val isStatic: Boolean,
+sealed class Member(
+    val element: OCDeclaration
 ) {
-    class Function(
-        file: String,
-        name: String?,
-        val parameters: List<String>,
-        isStatic: Boolean
-    ) : Signature(file, name, isStatic) {
-        constructor(function: OCFunctionDefinition) : this(
-            function.containingFile.name,
-            function.name,
-            function.parameters?.map { it.name } ?: listOf(),
-            function.isStatic)
+    val isStatic = element.isStatic
+    val file = element.containingFile.name
+    abstract val name: String
+    abstract val navigable: OpenFileDescriptor?
 
-        override fun equalsIgnoreFile(other: Signature) =
+    class Function(
+        function: OCFunctionDefinition
+    ) : Member(function) {
+        val parameters = function.parameters?.map { it.name } ?: listOf()
+        override val name = function.name ?: "undefined"
+        override val navigable = function.nameIdentifier?.navigable
+
+        override fun equalsIgnoreFile(other: Member) =
             super.equalsIgnoreFile(other) && other is Function && other.parameters == parameters
 
         override fun equals(other: Any?) =
@@ -109,19 +89,14 @@ sealed class Signature(
     }
 
     class Field(
-        file: String,
-        name: String?,
-        val type: String,
-        isStatic: Boolean
-    ) : Signature(file, name, isStatic) {
-        constructor(field: OCDeclaration) : this(
-            field.containingFile.name,
-            field.declarators.firstOrNull()?.name,
-            field.type.name,
-            field.isStatic
-        )
+        field: OCDeclaration
+    ) : Member(field) {
+        val type = field.type.name
+        override val name = field.declarators.firstOrNull()?.name ?: "undefined"
+        override val navigable = field.declarators.firstOrNull()?.nameIdentifier?.navigable
+        val value = field.declarators.firstOrNull()?.initializer?.text
 
-        override fun equalsIgnoreFile(other: Signature) =
+        override fun equalsIgnoreFile(other: Member) =
             super.equalsIgnoreFile(other) && other is Field && other.type == type
 
         override fun equals(other: Any?) =
@@ -132,45 +107,34 @@ sealed class Signature(
         override fun toString() = "$staticStr$type $name"
     }
 
-    open infix fun equalsIgnoreFile(other: Signature) =
+    open infix fun equalsIgnoreFile(other: Member) =
         other.name == name && other.isStatic == isStatic
 
     override fun equals(other: Any?) =
-        other is Signature && other.file == file && other.name == name && other.isStatic == isStatic
+        other is Member && other.file == file && other.name == name && other.isStatic == isStatic
 
-    override fun hashCode() = (file.hashCode() * 31 + (name?.hashCode() ?: 0)) * 31 + isStatic.hashCode()
+    override fun hashCode() = (file.hashCode() * 31 + (name.hashCode())) * 31 + isStatic.hashCode()
 
     protected val staticStr = if (isStatic) "static " else ""
 }
 
-sealed class Modification {
-    class ReplaceFunction(
-        val signature: Signature.Function,
-        val original: OCFunctionDefinition
-    ) : Modification()
+data class Modification(
+    val added: Member,
+    val original: Member?) {
 
-    class AddedFunction(
-        val signature: Signature.Function,
-        val original: OCFunctionDefinition
-    ) : Modification()
-
-    class ReplaceMember(
-        val signature: Signature.Field,
-        val value: String?,
-        val original: OCDeclaration
-    ) : Modification()
-
-    class AddedMember(
-        val signature: Signature.Field,
-        val original: OCDeclaration
-    ) : Modification()
+    val isReplacement = original != null
+    val isAddition = original == null
 }
 
-val OCStruct.functions get() = children.filterIsInstance<OCFunctionDefinition>()
-val OCStruct.fields
+fun List<Modification>.filterReplacements() = filter { it.isReplacement }
+fun List<Modification>.filterAdditions() = filter { it.isAddition }
+
+val OCStruct.memberFunctions get() = children.filterIsInstance<OCFunctionDefinition>().map { it.asMember() }
+val OCStruct.memberFields
     get() = children
         .filterIsInstance<OCDeclaration>()
         .filter { it !is OCFunctionDefinition && it.type !is OCStructType }
+        .map { it.asMember() }
 
 val PsiFile.struct get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
 
