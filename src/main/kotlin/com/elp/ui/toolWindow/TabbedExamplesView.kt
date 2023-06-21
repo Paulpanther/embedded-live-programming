@@ -90,7 +90,8 @@ class TabbedExamplesView(
         val active = project.exampleService.activeExample ?: return
         val tab = tabs.tabs.find { it.`object` as? Example == active } ?: return
         tabs.select(tab, true)
-        active.file.navigate(true)
+        tabs.requestFocusInWindow()
+//        active.file.navigate(true)
     }
 
     private fun addTabFor(example: Example, focus: Boolean = false) {

@@ -89,7 +89,7 @@ data class Clazz(
 )  {
     val name = element.name
     val file: PsiFile = element.containingFile
-    private val exampleService = element.project.exampleService
+    private val exampleService get() = element.project.exampleService
 
     val examples get() = exampleService.examplesForClass(this)
 

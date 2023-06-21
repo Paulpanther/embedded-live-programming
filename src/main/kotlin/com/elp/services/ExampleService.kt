@@ -18,6 +18,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.ui.EditorTextField
 import com.jetbrains.cidr.lang.OCFileType

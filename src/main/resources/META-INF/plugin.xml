@@ -18,6 +18,7 @@
         <intentionAction><className>com.elp.actions.ReplacementAction</className></intentionAction>
         <intentionAction><className>com.elp.actions.CreateOrOpenExampleAction</className></intentionAction>
         <intentionAction><className>com.elp.actions.JumpToSourceAction</className></intentionAction>
+        <psi.referenceContributor language="ObjectiveC" implementation="com.elp.actions.ReplacementReferenceContributor" />
         <toolWindow factoryClass="com.elp.ui.toolWindow.ExampleToolWindowFactory" id="Examples" anchor="bottom" canCloseContents="true"/>
         <notificationGroup id="Embedded Live Programming Notification Group" displayType="BALLOON" />
         <lang.foldingBuilder implementationClass="com.elp.ui.editor.ReplacementFoldingBuilder" language="ObjectiveC" />
