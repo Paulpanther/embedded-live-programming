@@ -15,9 +15,9 @@
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ProbeInlayProvider" />
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ReplacementInlayProvider" />
         <fileDocumentManagerListener implementation="com.elp.events.FileChangeListener" />
-        <intentionAction>
-            <className>com.elp.actions.ReplacementAction</className>
-        </intentionAction>
+        <intentionAction><className>com.elp.actions.ReplacementAction</className></intentionAction>
+        <intentionAction><className>com.elp.actions.CreateOrOpenExampleAction</className></intentionAction>
+        <intentionAction><className>com.elp.actions.JumpToSourceAction</className></intentionAction>
         <toolWindow factoryClass="com.elp.ui.toolWindow.ExampleToolWindowFactory" id="Examples" anchor="bottom" canCloseContents="true"/>
         <notificationGroup id="Embedded Live Programming Notification Group" displayType="BALLOON" />
         <lang.foldingBuilder implementationClass="com.elp.ui.editor.ReplacementFoldingBuilder" language="ObjectiveC" />

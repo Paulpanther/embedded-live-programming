@@ -16,19 +16,25 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.ui.EditorTextField
-import com.intellij.util.application
 import com.jetbrains.cidr.lang.OCFileType
 import com.jetbrains.rd.util.getOrCreate
+
+val exampleKey = Key.create<Example>("ELP_EXAMPLE")
 
 @Service
 class ExampleService(
     private val project: Project
 ) {
     val exampleDirectory = createExampleModule()
-    val examples = mutableMapOf<Clazz, MutableList<Example>>()
+
+    val onExamplesChanged = UpdateListeners()
+    private val examples = mutableMapOf<Clazz, MutableList<Example>>()
+
+    val onActiveExampleChanged = UpdateListeners()
     var activeExample: Example? = null
         set(value) {
             if (field == value) return
@@ -36,6 +42,7 @@ class ExampleService(
             activeExample?.hide()
             value?.show()
             field = value
+            onActiveExampleChanged.call()
         }
 
     fun examplesForClass(clazz: Clazz): MutableList<Example> {
@@ -56,6 +63,7 @@ class ExampleService(
             file ?: error("Could not create example file")
             val example = Example(project, clazz, file, name)
             examplesForClass(clazz) += example
+            onExamplesChanged.call()
             activeExample = example
             callback(example)
         }
@@ -81,6 +89,7 @@ class ExampleService(
             val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
             val file = exampleDirectory.createChildData(this, name)
             val doc = file.document ?: error("Could not get document for newly created example")
+
             executeCommand {
                 doc.insertString(0, "class ${clazz.name} {\n\t\n};")
                 callback(file)
@@ -103,6 +112,10 @@ class Example(
     val file get() = document.getPsiFile(project) ?: error("Could not get psi file of example")
     var modifications = listOf<Modification>()
     val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
+
+    init {
+        document.putUserData(exampleKey, this)
+    }
 
     fun makeActive() {
         project.exampleService.activeExample = this
@@ -141,4 +154,9 @@ class Example(
     fun dispose() {
         replacements.forEach { it.dispose() }
     }
+
+    override fun toString() = name
 }
+
+val PsiFile.example get() = document?.getUserData(exampleKey)
+val PsiFile.isExample get() = example != null

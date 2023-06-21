@@ -71,14 +71,18 @@ class ClassService(
         return files.mapNotNull { PsiManager.getInstance(project).findFile(it) }
     }
 
+    fun findClass(file: PsiFile) = classes.find { it.file == file }
+
     private fun findClasses(): List<Clazz> {
         return files
-            .mapNotNull { PsiTreeUtil.findChildOfType(it, OCStruct::class.java) }
+            .mapNotNull { it.clazz }
             .map { Clazz(it) }
     }
 
     override fun dispose() {}
 }
+
+val PsiFile.clazz get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
 
 data class Clazz(
     val element: OCStruct
@@ -89,7 +93,7 @@ data class Clazz(
 
     val examples get() = exampleService.examplesForClass(this)
 
-    fun addExample(name: String, callback: (Example) -> Unit) {
+    fun addExample(name: String, callback: (Example) -> Unit = {}) {
         exampleService.addExampleToClass(this, name, callback)
     }
 }

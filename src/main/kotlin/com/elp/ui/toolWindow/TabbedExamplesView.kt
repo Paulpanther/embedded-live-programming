@@ -32,6 +32,9 @@ class TabbedExamplesView(
     private val wrapper = JPanel(BorderLayout())
 
     init {
+        project.exampleService.onActiveExampleChanged.register(::showActiveExample)
+        project.exampleService.onExamplesChanged.register(::updateTabs)
+
         val group = DefaultActionGroup(object: AnAction("Add Example", "Create a new example for the selected class", AllIcons.General.Add ) {
             override fun actionPerformed(e: AnActionEvent) {
                 createAndAddExample()
@@ -61,9 +64,33 @@ class TabbedExamplesView(
 
     val component = wrapper
 
-    fun makeActive() {
-        val selected = tabs.selectedInfo?.`object` as? Example ?: return
-        selected.makeActive()
+    fun makeActive(useActive: Boolean) {
+        if (useActive) {
+            showActiveExample()
+        } else {
+            val selected = tabs.selectedInfo?.`object` as? Example ?: return
+            selected.makeActive()
+        }
+    }
+
+    private fun updateTabs() {
+        val oldExamples = tabs.tabs.mapNotNull { it.`object` as? Example }.toSet()
+        val examples = clazz.examples
+        if (oldExamples == examples) return
+
+        tabs.removeAllTabs()
+        for (example in clazz.examples) {
+            addTabFor(example)
+        }
+
+        showActiveExample()
+    }
+
+    private fun showActiveExample() {
+        val active = project.exampleService.activeExample ?: return
+        val tab = tabs.tabs.find { it.`object` as? Example == active } ?: return
+        tabs.select(tab, true)
+        active.file.navigate(true)
     }
 
     private fun addTabFor(example: Example, focus: Boolean = false) {
@@ -92,9 +119,7 @@ class TabbedExamplesView(
             }
         }
         if (dialog.showAndGet()) {
-            clazz.addExample(field.text) {
-                addTabFor(it, true)
-            }
+            clazz.addExample(field.text)
         }
     }
 }
