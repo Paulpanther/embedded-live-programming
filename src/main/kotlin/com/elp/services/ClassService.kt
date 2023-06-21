@@ -1,5 +1,7 @@
 package com.elp.services
 
+import com.elp.getPsiFile
+import com.elp.logic.struct
 import com.elp.recursiveChildren
 import com.elp.util.UpdateListeners
 import com.intellij.openapi.Disposable
@@ -9,6 +11,7 @@ import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
@@ -21,7 +24,7 @@ import com.jetbrains.cidr.lang.psi.OCStruct
 class ClassService(
     private val project: Project
 ): Disposable {
-    private var files = listOf<PsiFile>()
+    private var files = listOf<VirtualFile>()
     var classes = listOf<Clazz>()
         private set
     val onClassesChanged = UpdateListeners()
@@ -63,33 +66,28 @@ class ClassService(
         }
     }
 
-    private fun findOpenFiles(): List<PsiFile> {
+    private fun findOpenFiles(): List<VirtualFile> {
         val root = root ?: return listOf()
         val src = root.children.find { it.name == "src" }?.recursiveChildren ?: listOf()
         val include = root.children.find { it.name == "include" }?.recursiveChildren ?: listOf()
-        val files = src + include.filter { it.name != "code.h" }
-        return files.mapNotNull { PsiManager.getInstance(project).findFile(it) }
+        return src + include.filter { it.name != "code.h" }
     }
 
-    fun findClass(file: PsiFile) = classes.find { it.file == file }
+    fun findClass(virtualFile: VirtualFile) = classes.find { it.virtualFile == virtualFile }
 
-    private fun findClasses(): List<Clazz> {
-        return files
-            .mapNotNull { it.clazz }
-            .map { Clazz(it) }
-    }
+    private fun findClasses() = files.map { Clazz(project, it) }
 
     override fun dispose() {}
 }
 
-val PsiFile.clazz get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
-
-data class Clazz(
-    val element: OCStruct
+class Clazz(
+    val project: Project,
+    val virtualFile: VirtualFile
 )  {
+    val element get() = file.struct ?: error("Could not find class in file '${file.name}'")
     val name = element.name
-    val file: PsiFile = element.containingFile
-    private val exampleService get() = element.project.exampleService
+    val file get() = virtualFile.getPsiFile(project) ?: error("Could not get Psi File for class")
+    private val exampleService get() = project.exampleService
 
     val examples get() = exampleService.examplesForClass(this)
 

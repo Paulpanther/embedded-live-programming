@@ -27,7 +27,7 @@ class CreateOrOpenExampleAction: IntentionAction {
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         if (file == null || file.isExample) return
-        val clazz = project.classService.findClass(file) ?: return project.error("File contains no class")
+        val clazz = project.classService.findClass(file.virtualFile) ?: return project.error("File contains no class")
 
         val examples = clazz.examples
         val list = JBList(examples)

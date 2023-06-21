@@ -8,6 +8,7 @@ import com.elp.ui.Replacement
 import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
 import com.elp.util.UpdateListeners
+import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
@@ -20,8 +21,15 @@ import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiFileFactory
+import com.intellij.psi.PsiManager
+import com.intellij.psi.SingleRootFileViewProvider
+import com.intellij.psi.util.PsiUtilCore
 import com.intellij.ui.EditorTextField
 import com.jetbrains.cidr.lang.OCFileType
+import com.jetbrains.cidr.lang.OCFileTypeFactory
+import com.jetbrains.cidr.lang.OCLanguage
+import com.jetbrains.cidr.lang.light.psi.OCLightFileViewProvider
 import com.jetbrains.rd.util.getOrCreate
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
@@ -88,13 +96,9 @@ class ExampleService(
     private fun createExampleFile(clazz: Clazz, callback: (VirtualFile?) -> Unit) {
         runWriteAction {
             val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
-            val file = exampleDirectory.createChildData(this, name)
-            val doc = file.document ?: error("Could not get document for newly created example")
-
-            executeCommand {
-                doc.insertString(0, "class ${clazz.name} {\n\t\n};")
-                callback(file)
-            }
+            val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return@runWriteAction
+            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {}")
+            callback(dir.add(file).containingFile.virtualFile)
         }
     }
 }
@@ -110,7 +114,7 @@ class Example(
     val replacements = mutableListOf<Replacement>()
     val onReplacementsChange = UpdateListeners()
     val document get() = virtualFile.document ?: error("Could not get document of example")
-    val file get() = document.getPsiFile(project) ?: error("Could not get psi file of example")
+    val file get() = virtualFile.getPsiFile(project) ?: error("Could not get psi file of example")
     var modifications = listOf<Modification>()
     val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
 

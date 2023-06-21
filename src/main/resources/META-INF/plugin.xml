@@ -12,7 +12,7 @@
         <projectService serviceImplementation="com.elp.services.ExampleService" />
         <projectService serviceImplementation="com.elp.services.ClassService" />
         <statusBarWidgetFactory implementation="com.elp.ui.HITLWidgetFactory" />
-        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ProbeInlayProvider" />
+<!--        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ProbeInlayProvider" />-->
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ReplacementInlayProvider" />
         <fileDocumentManagerListener implementation="com.elp.events.FileChangeListener" />
         <intentionAction><className>com.elp.actions.ReplacementAction</className></intentionAction>
