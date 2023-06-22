@@ -76,6 +76,7 @@ sealed class Member(
         val parameters = function.parameters?.map { it.name } ?: listOf()
         override val name = function.name ?: "undefined"
         override val navigable = function.nameIdentifier?.navigable
+        val type = function.type.name
 
         override fun equalsIgnoreFile(other: Member) =
             super.equalsIgnoreFile(other) && other is Function && other.parameters == parameters
