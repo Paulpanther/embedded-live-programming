@@ -78,6 +78,8 @@ sealed class Member(
         override val navigable = function.nameIdentifier?.navigable
         val type = function.type.name
 
+        val parameterString = "(${parameters.joinToString(", ")})"
+
         override fun equalsIgnoreFile(other: Member) =
             super.equalsIgnoreFile(other) && other is Function && other.parameters == parameters
 
@@ -86,7 +88,7 @@ sealed class Member(
 
         override fun hashCode() = super.hashCode() * 31 + parameters.hashCode()
 
-        override fun toString() = "$staticStr$name(${parameters.joinToString(", ")})"
+        override fun toString() = "$staticStr$name$parameterString)"
     }
 
     class Field(

@@ -15,7 +15,7 @@
 <!--        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ProbeInlayProvider" />-->
         <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ReplacementInlayProvider" />
         <fileDocumentManagerListener implementation="com.elp.events.FileChangeListener" />
-        <intentionAction><className>com.elp.actions.ReplacementAction</className></intentionAction>
+        <intentionAction><className>com.elp.actions.CreateReplacementAction</className></intentionAction>
         <intentionAction><className>com.elp.actions.CreateOrOpenExampleAction</className></intentionAction>
         <intentionAction><className>com.elp.actions.JumpToSourceAction</className></intentionAction>
 <!--        <psi.referenceContributor language="ObjectiveC" implementation="com.elp.actions.ReplacementReferenceContributor" />-->

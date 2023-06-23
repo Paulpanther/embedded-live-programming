@@ -22,14 +22,14 @@ class FileChangeListener : FileDocumentManagerListener {
     }
 
     override fun beforeDocumentSaving(document: Document) {
-//        val project = openProject ?: return
-//        val psiFiles = project.classService.classes.map { it.file }
-//
-//        FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
-//            buildRunnableProject(project, oldToNewFiles) {
-//                probeService.runner.executeFiles(it)
-//            }
-//        }
+        val project = openProject ?: return
+        val psiFiles = project.classService.classes.map { it.file }
+
+        FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
+            buildRunnableProject(project, oldToNewFiles) {
+                probeService.runner.executeFiles(it)
+            }
+        }
     }
 
     private fun buildRunnableProject(

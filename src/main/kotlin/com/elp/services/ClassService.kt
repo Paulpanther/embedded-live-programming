@@ -94,6 +94,9 @@ class Clazz(
     fun addExample(name: String, callback: (Example) -> Unit = {}) {
         exampleService.addExampleToClass(this, name, callback)
     }
+
+    override fun equals(other: Any?) = other is Clazz && virtualFile == other.virtualFile
+    override fun hashCode() = virtualFile.hashCode()
 }
 
 val Project.classService get() = service<ClassService>()
