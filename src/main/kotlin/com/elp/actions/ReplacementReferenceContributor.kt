@@ -1,7 +1,6 @@
 package com.elp.actions
 
-import com.elp.logic.asMember
-import com.elp.logic.memberFunctions
+import com.elp.logic.*
 import com.elp.services.example
 import com.elp.services.isExample
 import com.intellij.codeInsight.lookup.LookupElementBuilder
@@ -9,16 +8,23 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
+import com.jetbrains.cidr.lang.psi.OCCallExpression
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 
 class ReplacementReferenceContributor: PsiReferenceContributor() {
     override fun registerReferenceProviders(registrar: PsiReferenceRegistrar) {
-        registrar.registerReferenceProvider(PlatformPatterns.psiElement(), object: PsiReferenceProvider() {
+        registrar.registerReferenceProvider(PlatformPatterns.psiElement(OCCallExpression::class.java), object: PsiReferenceProvider() {
             override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
                 val file = element.containingFile
-                if (!file.isExample) return arrayOf()
-                val func = element as? OCFunctionDefinition ?: return arrayOf()
-                return arrayOf(FunctionReference(func, TextRange(0, func.textLength)))
+                val example = file.example ?: return arrayOf()
+                val raw = element.text
+                val members = example.missingMembers
+                val member = members.find { it.name == raw } ?: return arrayOf()
+
+                if (member is Member.Function) {
+                    return arrayOf(FunctionReference(element, TextRange(0, element.textLength)))
+                }
+                return arrayOf()
             }
         })
     }
