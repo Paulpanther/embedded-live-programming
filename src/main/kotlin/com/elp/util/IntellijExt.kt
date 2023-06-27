@@ -1,4 +1,4 @@
-package com.elp
+package com.elp.util
 
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
+import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
@@ -15,8 +16,12 @@ import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiDocumentManager
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiManager
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.refactoring.suggested.startOffset
+import com.jetbrains.cidr.lang.psi.OCStruct
 import javax.swing.Icon
 
 val openProject get() = ProjectManager.getInstance().openProjects.firstOrNull()
@@ -54,3 +59,8 @@ fun Document.getPsiFile(project: Project) = PsiDocumentManager.getInstance(proje
 fun VirtualFile.getPsiFile(project: Project) = PsiManager.getInstance(project).findFile(this)
 val PsiFile.document get() = PsiDocumentManager.getInstance(project).getDocument(this)
 val VirtualFile.document get() = FileDocumentManager.getInstance().getDocument(this)
+
+val PsiFile.struct get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
+val PsiFile.structs get() = PsiTreeUtil.findChildrenOfType(this, OCStruct::class.java).toList()
+
+val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virtualFile, navigationElement.startOffset)

@@ -1,8 +1,8 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp.ui.editor
+package com.elp.editor
 
-import com.elp.document
+import com.elp.util.document
 import com.elp.logic.*
 import com.elp.services.exampleService
 import com.intellij.codeInsight.hints.*
@@ -43,7 +43,7 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             editor: Editor,
             sink: InlayHintsSink
         ): Boolean {
-            if (example == null || file != example.clazz.file || element !is PsiFile) return false
+            if (example == null || file != example.parentClazz.file || element !is PsiFile) return false
             val struct = element.struct ?: return false
 
             collectReplacements(struct)

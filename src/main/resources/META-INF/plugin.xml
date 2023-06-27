@@ -16,10 +16,10 @@
                 serviceImplementation="com.elp.services.ClassService"/>
         <statusBarWidgetFactory
                 implementation="com.elp.ui.HITLWidgetFactory"/>
-        <!--        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.ui.editor.ProbeInlayProvider" />-->
+        <!--        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.editor.ProbeInlayProvider" />-->
         <codeInsight.inlayProvider
                 language="ObjectiveC"
-                implementationClass="com.elp.ui.editor.ReplacementInlayProvider"/>
+                implementationClass="com.elp.editor.ReplacementInlayProvider"/>
         <fileDocumentManagerListener
                 implementation="com.elp.events.FileChangeListener"/>
         <intentionAction>
@@ -34,11 +34,11 @@
         <psi.referenceContributor
                 order="first"
                 language="JAVA"
-                implementation="com.elp.ext.ReplacementReferenceContributor"/>
+                implementation="com.elp.editor.ReplacementReferenceContributor"/>
         <completion.contributor
                 order="first, before clangd"
                 language="ObjectiveC"
-                implementationClass="com.elp.ext.ReplacementCompletionContributor"/>
+                implementationClass="com.elp.editor.ReplacementCompletionContributor"/>
         <toolWindow
                 factoryClass="com.elp.ui.toolWindow.ExampleToolWindowFactory"
                 id="Examples"
@@ -48,8 +48,8 @@
                 id="Embedded Live Programming Notification Group"
                 displayType="BALLOON"/>
         <lang.foldingBuilder
-                implementationClass="com.elp.ui.editor.ReplacementFoldingBuilder"
+                implementationClass="com.elp.editor.ReplacementFoldingBuilder"
                 language="ObjectiveC"/>
-        <psi.implicitReferenceProvider implementation="com.elp.ext.ReplacementImplicitReferenceProvider" />
+        <psi.implicitReferenceProvider implementation="com.elp.editor.ReplacementImplicitReferenceProvider" />
     </extensions>
 </idea-plugin>

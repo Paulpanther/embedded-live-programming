@@ -1,9 +1,10 @@
 package com.elp.services
 
-import com.elp.getPsiFile
-import com.elp.logic.struct
-import com.elp.recursiveChildren
+import com.elp.model.Example
 import com.elp.util.UpdateListeners
+import com.elp.util.getPsiFile
+import com.elp.util.recursiveChildren
+import com.elp.util.struct
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
@@ -15,10 +16,6 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
-import com.intellij.psi.util.PsiTreeUtil
-import com.jetbrains.cidr.lang.psi.OCStruct
 
 @Service
 class ClassService(

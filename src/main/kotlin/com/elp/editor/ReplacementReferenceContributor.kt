@@ -1,4 +1,4 @@
-package com.elp.ext
+package com.elp.editor
 
 import com.elp.logic.asMember
 import com.elp.logic.memberFunctions
@@ -31,7 +31,7 @@ class FunctionReference(
     override fun resolve(): PsiElement? {
         val example = element.containingFile.example ?: return null
         val self = (element as? OCFunctionDefinition)?.asMember() ?: return null
-        val original = example.clazz.element
+        val original = example.parentClazz.element
         val functions = original.memberFunctions
         val memberRef = functions.find { it equalsIgnoreFile self } ?: return null
         return memberRef.element
@@ -39,7 +39,7 @@ class FunctionReference(
 
     override fun getVariants(): Array<Any> {
         val example = element.containingFile.example ?: return arrayOf()
-        val functions = example.clazz.element.memberFunctions
+        val functions = example.parentClazz.element.memberFunctions
         return functions.map { LookupElementBuilder.create(it) }.toTypedArray()
     }
 }

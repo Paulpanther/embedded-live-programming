@@ -1,38 +1,22 @@
 package com.elp.services
 
-import com.elp.document
-import com.elp.error
-import com.elp.getPsiFile
-import com.elp.logic.Modification
-import com.elp.logic.struct
-import com.elp.logic.structs
-import com.elp.ui.Replacement
+import com.elp.model.Example
+import com.elp.util.document
 import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
 import com.elp.util.UpdateListeners
-import com.intellij.lang.LanguageParserDefinitions
 import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
-import com.intellij.psi.SingleRootFileViewProvider
-import com.intellij.psi.util.PsiUtilCore
-import com.intellij.ui.EditorTextField
-import com.jetbrains.cidr.lang.OCFileType
-import com.jetbrains.cidr.lang.OCFileTypeFactory
 import com.jetbrains.cidr.lang.OCLanguage
-import com.jetbrains.cidr.lang.light.psi.OCLightFileViewProvider
-import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.rd.util.getOrCreate
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
@@ -107,73 +91,6 @@ class ExampleService(
 }
 
 val Project.exampleService get() = this.service<ExampleService>()
-
-class Example(
-    private val project: Project,
-    val clazz: Clazz,
-    val virtualFile: VirtualFile,
-    var name: String,
-) {
-    val replacements = mutableListOf<Replacement>()
-    val onReplacementsChange = UpdateListeners()
-    val document get() = virtualFile.document ?: error("Could not get document of example")
-    val file get() = virtualFile.getPsiFile(project) ?: error("Could not get psi file of example")
-    var modifications = listOf<Modification>()
-    val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
-    val parentFile get() = clazz.file
-
-    val structs get() = file.structs
-    val mainStruct get() = structs.find { it.name == clazz.name }
-
-    val replacedStructs get(): List<OCStruct> {
-        val main = mainStruct
-        return structs.filter { it != main }
-    }
-
-    init {
-        document.putUserData(exampleKey, this)
-    }
-
-    fun makeActive() {
-        project.exampleService.activeExample = this
-    }
-
-    fun makeDeactive() {
-        project.exampleService.activeExample = null
-    }
-
-    fun navigateTo(descriptor: OpenFileDescriptor) {
-        editor.component.requestFocusInWindow()
-        descriptor.navigateIn(editor.editor ?: return project.error("Could not navigate to element"))
-    }
-
-    fun show() {
-        replacements.forEach { it.show() }
-    }
-
-    fun hide() {
-        replacements.forEach { it.hide() }
-    }
-
-    fun addReplacement(replacement: Replacement) {
-        replacements += replacement
-        onReplacementsChange.call()
-    }
-
-    fun removeReplacement(replacement: Replacement) {
-        if (replacement !in replacements) return
-
-        replacements -= replacement
-        replacement.dispose()
-        onReplacementsChange.call()
-    }
-
-    fun dispose() {
-        replacements.forEach { it.dispose() }
-    }
-
-    override fun toString() = name
-}
 
 val PsiFile.example get() = document?.getUserData(exampleKey)
 val PsiFile.isExample get() = example != null

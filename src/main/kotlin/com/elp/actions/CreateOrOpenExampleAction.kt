@@ -1,15 +1,12 @@
 package com.elp.actions
 
-import com.elp.error
-import com.elp.panel
+import com.elp.util.error
+import com.elp.util.panel
 import com.elp.services.classService
-import com.elp.services.exampleService
 import com.elp.services.isExample
 import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.ui.ListSpeedSearch
 import com.intellij.ui.components.JBList
@@ -17,7 +14,6 @@ import com.intellij.ui.components.dialog
 import com.intellij.util.application
 import java.awt.BorderLayout
 import javax.swing.JTextField
-import javax.swing.ListCellRenderer
 
 class CreateOrOpenExampleAction: IntentionAction {
     override fun startInWriteAction() = false
@@ -51,7 +47,7 @@ class CreateOrOpenExampleAction: IntentionAction {
                 clazz.addExample(field.text.trim())
             } else {
                 val selected = list.selectedValue ?: return@invokeLater
-                selected.makeActive()
+                selected.activate()
             }
         }
     }

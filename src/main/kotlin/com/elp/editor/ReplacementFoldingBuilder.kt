@@ -1,4 +1,4 @@
-package com.elp.ui.editor
+package com.elp.editor
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.folding.FoldingBuilderEx

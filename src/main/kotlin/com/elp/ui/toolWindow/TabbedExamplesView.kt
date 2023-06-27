@@ -1,7 +1,7 @@
 package com.elp.ui.toolWindow
 
 import com.elp.services.Clazz
-import com.elp.services.Example
+import com.elp.model.Example
 import com.elp.services.exampleService
 import com.elp.util.NamingHelper
 import com.intellij.icons.AllIcons
@@ -13,13 +13,9 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.ui.EditorTextField
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.impl.JBEditorTabs
-import com.jetbrains.cidr.lang.OCFileType
 import java.awt.BorderLayout
-import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextField
 
@@ -46,7 +42,7 @@ class TabbedExamplesView(
         toolbarComponent.add(toolbar.component)
         
         tabs.setSelectionChangeHandler { info, _, doChangeSelection ->
-            (info.`object` as? Example)?.makeActive()
+            (info.`object` as? Example)?.activate()
             doChangeSelection.run()
         }
 
@@ -69,7 +65,7 @@ class TabbedExamplesView(
             showActiveExample()
         } else {
             val selected = tabs.selectedInfo?.`object` as? Example ?: return
-            selected.makeActive()
+            selected.activate()
         }
     }
 

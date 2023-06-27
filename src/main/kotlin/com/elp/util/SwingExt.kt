@@ -1,4 +1,4 @@
-package com.elp
+package com.elp.util
 
 import java.awt.Component
 import javax.swing.JComponent

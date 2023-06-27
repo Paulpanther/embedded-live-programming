@@ -15,6 +15,6 @@ class JumpToSourceAction: IntentionAction {
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         val example = file?.example ?: return
-        example.clazz.file.navigate(true)
+        example.parentClazz.file.navigate(true)
     }
 }

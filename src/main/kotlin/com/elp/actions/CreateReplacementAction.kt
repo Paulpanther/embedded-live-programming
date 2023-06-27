@@ -1,9 +1,9 @@
 package com.elp.actions
 
-import com.elp.document
-import com.elp.error
+import com.elp.util.document
+import com.elp.util.error
 import com.elp.logic.*
-import com.elp.services.Example
+import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.isExample
@@ -39,7 +39,7 @@ class CreateReplacementAction : PsiElementBaseIntentionAction() {
         val field = (element.parent as? OCDeclarator)?.parent as? OCDeclaration ?: return
         val function = field as? OCFunctionDefinition
         val member = function?.asMember() ?: field.asMember()
-        val exampleStruct = example.file.struct ?: return
+        val exampleStruct = example.ownFile.struct ?: return
         val exampleMembers = exampleStruct.memberFields + exampleStruct.memberFunctions
         if (exampleMembers.any { it equalsIgnoreFile member }) return project.error("Already replaced in example")
 
@@ -47,7 +47,7 @@ class CreateReplacementAction : PsiElementBaseIntentionAction() {
     }
 
     private fun createReplacement(member: Member, example: Example) {
-        val file = example.file
+        val file = example.ownFile
         val offset = file.struct?.functionsStartOffset ?: error("Could not find struct")
         val doc = file.document ?: return
 

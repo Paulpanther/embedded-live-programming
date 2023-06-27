@@ -1,9 +1,9 @@
 package com.elp.events
 
-import com.elp.error
+import com.elp.util.error
 import com.elp.logic.FileExampleInstrumentalization
 import com.elp.logic.FileProbeInstrumentalization
-import com.elp.openProject
+import com.elp.util.openProject
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.probeService
@@ -17,10 +17,6 @@ import com.intellij.psi.PsiFileFactory
 import com.jetbrains.cidr.lang.OCLanguage
 
 class FileChangeListener : FileDocumentManagerListener {
-    init {
-        FileOpenListener.register()
-    }
-
     override fun beforeDocumentSaving(document: Document) {
         val project = openProject ?: return
         val psiFiles = project.classService.classes.map { it.file }
@@ -40,7 +36,7 @@ class FileChangeListener : FileDocumentManagerListener {
         val example = project.exampleService.activeExample
             ?: return project.error("Create an example to run the project")
 
-        val file = example.clazz.file
+        val file = example.parentClazz.file
         val newFile = oldToNewFiles[file]
             ?: return project.error("Could not generate instrumentalized classes")
 

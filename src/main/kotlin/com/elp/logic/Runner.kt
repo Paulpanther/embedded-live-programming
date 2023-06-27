@@ -1,5 +1,6 @@
 package com.elp.logic
 
+import com.elp.model.Probe
 import com.elp.services.probeService
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile

@@ -1,4 +1,4 @@
-package com.elp.ext
+package com.elp.editor
 
 import com.elp.logic.Member
 import com.elp.logic.memberFields
@@ -25,7 +25,7 @@ class ReplacementCompletionContributor: CompletionContributor() {
 
         if (input.parentsOfType<OCDeclaration>().any { it.text != input.text && it.type !is OCStructType }) return
 
-        val originalClass = example.clazz.element
+        val originalClass = example.parentClazz.element
         val originalMembers = originalClass.memberFields + originalClass.memberFunctions
         val exampleMembers = parent.memberFields + parent.memberFunctions
         val missingMembers = originalMembers.filter { exampleMembers.none(it::equalsIgnoreFile) }

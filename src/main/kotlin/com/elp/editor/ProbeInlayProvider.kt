@@ -1,6 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp.ui.editor
+package com.elp.editor
 
 import com.elp.services.probeService
 import com.intellij.codeInsight.hints.*

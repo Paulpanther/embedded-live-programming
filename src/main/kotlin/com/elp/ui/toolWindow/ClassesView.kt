@@ -51,7 +51,7 @@ class ClassesView(
     }
 
     private fun onExampleChanged() {
-        val activeClass = project.exampleService.activeExample?.clazz
+        val activeClass = project.exampleService.activeExample?.parentClazz
         val prevClass = list.selectedValue
         if (activeClass != prevClass) {
             val i = classesModel.items.indexOf(activeClass)

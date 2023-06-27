@@ -1,6 +1,6 @@
 @file:Suppress("UnstableApiUsage")
 
-package com.elp.ext
+package com.elp.editor
 
 import com.elp.logic.struct
 import com.intellij.model.Pointer
