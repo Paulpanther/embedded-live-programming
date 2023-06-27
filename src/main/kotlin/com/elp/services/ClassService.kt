@@ -94,6 +94,8 @@ class Clazz(
 
     override fun equals(other: Any?) = other is Clazz && virtualFile == other.virtualFile
     override fun hashCode() = virtualFile.hashCode()
+
+    override fun toString() = name ?: "undefined"
 }
 
 val Project.classService get() = service<ClassService>()

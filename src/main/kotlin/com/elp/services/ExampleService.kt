@@ -28,7 +28,8 @@ class ExampleService(
     val exampleDirectory = createExampleModule()
 
     val onExamplesChanged = UpdateListeners()
-    private val examples = mutableMapOf<Clazz, MutableList<Example>>()
+    private val classToExamples = mutableMapOf<Clazz, MutableList<Example>>()
+    val examples get() = classToExamples.values.flatten()
 
     val onActiveExampleChanged = UpdateListeners()
     var activeExample: Example? = null
@@ -40,7 +41,7 @@ class ExampleService(
         }
 
     fun examplesForClass(clazz: Clazz): MutableList<Example> {
-        return examples.getOrCreate(clazz) { mutableListOf() }
+        return classToExamples.getOrCreate(clazz) { mutableListOf() }
     }
 
     fun getActiveExampleOrShowError(error: String, consumer: (example: Example) -> Unit) {

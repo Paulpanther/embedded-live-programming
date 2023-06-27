@@ -2,8 +2,10 @@ package com.elp.ui.toolWindow
 
 import com.elp.services.Clazz
 import com.elp.model.Example
+import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.util.NamingHelper
+import com.elp.util.panel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -13,19 +15,22 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.components.JBList
+import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import java.awt.BorderLayout
+import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTextField
 
 class TabbedExamplesView(
     private val project: Project,
-    private val clazz: Clazz,
     parentDisposable: Disposable
 ) {
     private val tabs = JBEditorTabs(project, null, parentDisposable)
     private val wrapper = JPanel(BorderLayout())
+    private val examples get() = project.exampleService.examples
 
     init {
         project.exampleService.onActiveExampleChanged.register(::showActiveExample)
@@ -36,6 +41,7 @@ class TabbedExamplesView(
                 createAndAddExample()
             }
         })
+
         val toolbar = ActionManager.getInstance().createActionToolbar("TabbedExampleView", group, false)
         val toolbarComponent = JPanel()
         toolbar.targetComponent = toolbarComponent
@@ -50,7 +56,7 @@ class TabbedExamplesView(
             setEmptyText("There are no examples here yet")
             setTabLabelActionsAutoHide(false)
         }
-        for (example in clazz.examples) {
+        for (example in examples) {
             addTabFor(example)
         }
 
@@ -71,11 +77,10 @@ class TabbedExamplesView(
 
     private fun updateTabs() {
         val oldExamples = tabs.tabs.mapNotNull { it.`object` as? Example }.toSet()
-        val examples = clazz.examples
         if (oldExamples == examples) return
 
         tabs.removeAllTabs()
-        for (example in clazz.examples) {
+        for (example in examples) {
             addTabFor(example)
         }
 
@@ -91,7 +96,7 @@ class TabbedExamplesView(
     }
 
     private fun addTabFor(example: Example, focus: Boolean = false) {
-        val info = TabInfo(example.editor).apply {
+        val info = TabInfo(JBScrollPane(example.editor)).apply {
             setObject(example)
             text = example.name
         }
@@ -100,22 +105,30 @@ class TabbedExamplesView(
     }
 
     private fun createAndAddExample() {
-        val field = JTextField(NamingHelper.nextName("Example ", clazz.examples.map { it.name }))
+        val field = JTextField("Example")
+        val list = JBList(project.classService.classes)
         val dialog = object: DialogWrapper(project) {
             init {
-                title = "Set Example name"
+                title = "Create Example"
                 init()
             }
 
-            override fun createCenterPanel() = field
+            override fun createCenterPanel() = panel {
+                add(field)
+                add(list)
+            }
+
+            override fun getPreferredFocusedComponent() = field
 
             override fun doValidate(): ValidationInfo? {
+                val clazz = list.selectedValue ?: return ValidationInfo("No class selected", list)
                 val nameUsed = clazz.examples.any { it.name == field.text }
                 if (nameUsed) return ValidationInfo("Name already in use", field)
                 return null
             }
         }
         if (dialog.showAndGet()) {
+            val clazz = list.selectedValue!!
             clazz.addExample(field.text)
         }
     }
