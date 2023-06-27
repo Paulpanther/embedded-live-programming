@@ -1,4 +1,4 @@
-package com.elp.actions
+package com.elp.ext
 
 import com.elp.logic.Member
 import com.elp.logic.memberFields

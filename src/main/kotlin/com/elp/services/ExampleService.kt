@@ -4,6 +4,8 @@ import com.elp.document
 import com.elp.error
 import com.elp.getPsiFile
 import com.elp.logic.Modification
+import com.elp.logic.struct
+import com.elp.logic.structs
 import com.elp.ui.Replacement
 import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
@@ -30,6 +32,7 @@ import com.jetbrains.cidr.lang.OCFileType
 import com.jetbrains.cidr.lang.OCFileTypeFactory
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.light.psi.OCLightFileViewProvider
+import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.rd.util.getOrCreate
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
@@ -117,6 +120,15 @@ class Example(
     val file get() = virtualFile.getPsiFile(project) ?: error("Could not get psi file of example")
     var modifications = listOf<Modification>()
     val editor = EditorTextField(document, project, OCFileType.INSTANCE, false, false)
+    val parentFile get() = clazz.file
+
+    val structs get() = file.structs
+    val mainStruct get() = structs.find { it.name == clazz.name }
+
+    val replacedStructs get(): List<OCStruct> {
+        val main = mainStruct
+        return structs.filter { it != main }
+    }
 
     init {
         document.putUserData(exampleKey, this)

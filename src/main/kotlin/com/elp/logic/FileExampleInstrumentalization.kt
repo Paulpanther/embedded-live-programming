@@ -140,5 +140,6 @@ val OCStruct.memberFields
         .map { it.asMember() }
 
 val PsiFile.struct get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
+val PsiFile.structs get() = PsiTreeUtil.findChildrenOfType(this, OCStruct::class.java).toList()
 
 val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virtualFile, navigationElement.startOffset)

@@ -47,6 +47,10 @@ changelog {
     repositoryUrl.set(properties("pluginRepositoryUrl"))
 }
 
+dependencies {
+    implementation("org.javassist:javassist:3.29.2-GA")
+}
+
 // Configure Gradle Qodana Plugin - read more: https://github.com/JetBrains/gradle-qodana-plugin
 qodana {
     cachePath.set(file(".qodana").canonicalPath)
@@ -59,6 +63,14 @@ qodana {
 kover.xmlReport {
     onCheck.set(true)
 }
+
+//tasks.withType<Jar> {
+//    manifest {
+//        attributes["Agent-Class"] = "com.elp.util.injection.InstrumentationAgent"
+//        attributes["Can-Retransform-Classes"] = "true"
+//        attributes["Can-Redefine-Classes"] = "true"
+//    }
+//}
 
 tasks {
     wrapper {
