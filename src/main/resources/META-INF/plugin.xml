@@ -14,9 +14,6 @@
                 serviceImplementation="com.elp.services.ExampleService"/>
         <projectService
                 serviceImplementation="com.elp.services.ClassService"/>
-        <statusBarWidgetFactory
-                implementation="com.elp.ui.HITLWidgetFactory"/>
-        <!--        <codeInsight.inlayProvider language="ObjectiveC" implementationClass="com.elp.editor.ProbeInlayProvider" />-->
         <codeInsight.inlayProvider
                 language="ObjectiveC"
                 implementationClass="com.elp.editor.ReplacementInlayProvider"/>
@@ -31,10 +28,9 @@
         <intentionAction>
             <className>com.elp.actions.JumpToSourceAction</className>
         </intentionAction>
-        <psi.referenceContributor
-                order="first"
-                language="JAVA"
-                implementation="com.elp.editor.ReplacementReferenceContributor"/>
+        <intentionAction>
+            <className>com.elp.actions.CreateClassReplacementAction</className>
+        </intentionAction>
         <completion.contributor
                 order="first, before clangd"
                 language="ObjectiveC"

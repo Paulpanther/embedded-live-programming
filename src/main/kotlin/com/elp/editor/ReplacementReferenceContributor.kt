@@ -1,7 +1,7 @@
 package com.elp.editor
 
-import com.elp.logic.asMember
-import com.elp.logic.memberFunctions
+import com.elp.instrumentalization.asMember
+import com.elp.instrumentalization.memberFunctions
 import com.elp.services.example
 import com.elp.services.isExample
 import com.intellij.codeInsight.lookup.LookupElementBuilder

@@ -1,4 +1,4 @@
-package com.elp.logic
+package com.elp.instrumentalization
 
 import com.elp.model.Probe
 import com.elp.services.probeService

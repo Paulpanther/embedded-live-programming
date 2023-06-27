@@ -1,7 +1,7 @@
 package com.elp.services
 
-import com.elp.logic.ProbeUpdateController
-import com.elp.logic.Runner
+import com.elp.instrumentalization.ProbeUpdateController
+import com.elp.instrumentalization.Runner
 import com.elp.ui.ProbePresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service

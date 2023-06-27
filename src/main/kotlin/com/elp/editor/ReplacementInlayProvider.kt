@@ -3,8 +3,10 @@
 package com.elp.editor
 
 import com.elp.util.document
-import com.elp.logic.*
+import com.elp.instrumentalization.*
 import com.elp.services.exampleService
+import com.elp.util.navigable
+import com.elp.util.struct
 import com.intellij.codeInsight.hints.*
 import com.intellij.codeInsight.hints.presentation.InlayPresentation
 import com.intellij.codeInsight.hints.presentation.MouseButton
@@ -43,17 +45,18 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             editor: Editor,
             sink: InlayHintsSink
         ): Boolean {
-            if (example == null || file != example.parentClazz.file || element !is PsiFile) return false
+            if (example == null || element !is PsiFile) return false
             val struct = element.struct ?: return false
+            val modifications = example.modifications.filter { it.struct.name == struct.name }
 
-            collectReplacements(struct)
-            collectAdditions(struct)
+            collectReplacements(struct, modifications)
+            collectAdditions(struct, modifications)
             return true
         }
 
-        private fun collectAdditions(struct: OCStruct) {
+        private fun collectAdditions(struct: OCStruct, modifications: List<Modification>) {
             val offset = struct.functionsStartOffset
-            val added = (example ?: return).modifications.filterAdditions()
+            val added = modifications.filterAdditions()
             if (added.isEmpty()) return
 
             var p: InlayPresentation = VerticalListInlayPresentation(added.map {
@@ -73,9 +76,9 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             )
         }
 
-        private fun collectReplacements(struct: OCStruct) {
+        private fun collectReplacements(struct: OCStruct, modifications: List<Modification>) {
             val members = struct.memberFunctions + struct.memberFields
-            val replacements = (example ?: return).modifications.filterReplacements()
+            val replacements = modifications.filterReplacements()
             for (member in members) {
                 val modification = replacements
                     .find { it.original == member } ?: continue

@@ -1,4 +1,4 @@
-package com.elp.logic
+package com.elp.instrumentalization
 
 import com.elp.util.navigable
 import com.intellij.openapi.fileEditor.OpenFileDescriptor

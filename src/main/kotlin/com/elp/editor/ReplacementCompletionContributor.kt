@@ -1,8 +1,8 @@
 package com.elp.editor
 
-import com.elp.logic.Member
-import com.elp.logic.memberFields
-import com.elp.logic.memberFunctions
+import com.elp.instrumentalization.Member
+import com.elp.instrumentalization.memberFields
+import com.elp.instrumentalization.memberFunctions
 import com.elp.services.example
 import com.intellij.codeInsight.completion.CompletionContributor
 import com.intellij.codeInsight.completion.CompletionParameters

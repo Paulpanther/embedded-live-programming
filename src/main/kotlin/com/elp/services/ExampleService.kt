@@ -35,8 +35,6 @@ class ExampleService(
         set(value) {
             if (field == value) return
 
-            activeExample?.hide()
-            value?.show()
             field = value
             onActiveExampleChanged.call()
         }

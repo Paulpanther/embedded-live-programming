@@ -2,11 +2,12 @@ package com.elp.actions
 
 import com.elp.util.document
 import com.elp.util.error
-import com.elp.logic.*
+import com.elp.instrumentalization.*
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.isExample
+import com.elp.util.struct
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand

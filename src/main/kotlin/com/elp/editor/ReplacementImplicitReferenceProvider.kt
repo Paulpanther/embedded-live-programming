@@ -2,7 +2,7 @@
 
 package com.elp.editor
 
-import com.elp.logic.struct
+import com.elp.util.struct
 import com.intellij.model.Pointer
 import com.intellij.model.Symbol
 import com.intellij.model.psi.ImplicitReferenceProvider

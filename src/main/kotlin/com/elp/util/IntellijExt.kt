@@ -15,12 +15,10 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiManager
+import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.refactoring.suggested.startOffset
+import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCStruct
 import javax.swing.Icon
 
@@ -32,19 +30,30 @@ fun Project.getAllOpenFiles(): List<PsiFile>? {
         ModuleManager.getInstance(this).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull() ?: return null
     val src = root.children.find { it.name == "src" } ?: return null
     val include = root.children.find { it.name == "include" } ?: return null
-    val files = src.recursiveChildren + include.recursiveChildren.filter { it.name != "code.h" }  // TODO remove the filter
+    val files =
+        src.recursiveChildren + include.recursiveChildren.filter { it.name != "code.h" }  // TODO remove the filter
     return files.mapNotNull { PsiManager.getInstance(this).findFile(it) }
 }
 
 val VirtualFile.recursiveChildren get(): List<VirtualFile> = children.flatMap { it.recursiveChildren + it }
 
-fun dumbActionButton(text: String, description: String, icon: Icon, callback: (event: AnActionEvent) -> Unit): ActionButton {
-    val action = object: DumbAwareAction(text, description, icon) {
+fun dumbActionButton(
+    text: String,
+    description: String,
+    icon: Icon,
+    callback: (event: AnActionEvent) -> Unit
+): ActionButton {
+    val action = object : DumbAwareAction(text, description, icon) {
         override fun actionPerformed(e: AnActionEvent) {
             callback(e)
         }
     }
-    return ActionButton(action, action.templatePresentation.clone(), ActionPlaces.UNKNOWN, ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE)
+    return ActionButton(
+        action,
+        action.templatePresentation.clone(),
+        ActionPlaces.UNKNOWN,
+        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
+    )
 }
 
 fun Project.error(content: String) {
@@ -63,4 +72,9 @@ val VirtualFile.document get() = FileDocumentManager.getInstance().getDocument(t
 val PsiFile.struct get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
 val PsiFile.structs get() = PsiTreeUtil.findChildrenOfType(this, OCStruct::class.java).toList()
 
+fun PsiFile.clone() = PsiFileFactory
+    .getInstance(project)
+    .createFileFromText(name, OCLanguage.getInstance(), text)
+
 val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virtualFile, navigationElement.startOffset)
+

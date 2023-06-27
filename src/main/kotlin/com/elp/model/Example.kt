@@ -1,6 +1,6 @@
 package com.elp.model
 
-import com.elp.logic.Modification
+import com.elp.instrumentalization.Modification
 import com.elp.services.Clazz
 import com.elp.services.exampleKey
 import com.elp.services.exampleService
@@ -13,7 +13,7 @@ import com.jetbrains.cidr.lang.OCFileType
 import com.jetbrains.cidr.lang.psi.OCStruct
 
 class Example(
-    private val project: Project,
+    val project: Project,
     val parentClazz: Clazz,
     val ownVirtualFile: VirtualFile,
     var name: String,
