@@ -1,12 +1,15 @@
 package com.elp.actions
 
-import com.elp.util.document
-import com.elp.util.error
-import com.elp.instrumentalization.*
+import com.elp.instrumentalization.Member
+import com.elp.instrumentalization.asMember
+import com.elp.instrumentalization.memberFields
+import com.elp.instrumentalization.memberFunctions
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.isExample
+import com.elp.util.document
+import com.elp.util.error
 import com.elp.util.struct
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.application.runWriteAction
@@ -24,32 +27,34 @@ class CreateReplacementAction : PsiElementBaseIntentionAction() {
 
     override fun isAvailable(project: Project, editor: Editor?, element: PsiElement): Boolean {
         if (element.containingFile.isExample) return false
-        val clazz = project.classService.findClass(element.containingFile.virtualFile) ?: return false
-        val example = project.exampleService.activeExample ?: return false
-        if (example !in clazz.examples) return false
+        project.classService.findClass(element.containingFile.virtualFile) ?: return false
+        project.exampleService.activeExample ?: return false
 
         return true
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
         val file = element.containingFile
-        val clazz = project.classService.findClass(file.virtualFile) ?: return
+        val struct = file.struct ?: return
         val example = project.exampleService.activeExample ?: return
-        if (example !in clazz.examples) return project.error("Class is not part of active example")
 
         val field = (element.parent as? OCDeclarator)?.parent as? OCDeclaration ?: return
         val function = field as? OCFunctionDefinition
         val member = function?.asMember() ?: field.asMember()
-        val exampleStruct = example.ownFile.struct ?: return
-        val exampleMembers = exampleStruct.memberFields + exampleStruct.memberFunctions
-        if (exampleMembers.any { it equalsIgnoreFile member }) return project.error("Already replaced in example")
 
-        createReplacement(member, example)
+        val exampleStruct = example.ownStructs.find { it.name == struct.name }
+        if (exampleStruct == null) {
+            ReplacementClassCreator.create(example, struct) { createReplacement(member, example, it) }
+        } else {
+            val exampleMembers = exampleStruct.memberFields + exampleStruct.memberFunctions
+            if (exampleMembers.any { it equalsIgnoreFile member }) return project.error("Already replaced in example")
+            val offset = exampleStruct.functionsStartOffset
+            createReplacement(member, example, offset)
+        }
     }
 
-    private fun createReplacement(member: Member, example: Example) {
+    private fun createReplacement(member: Member, example: Example, offset: Int) {
         val file = example.ownFile
-        val offset = file.struct?.functionsStartOffset ?: error("Could not find struct")
         val doc = file.document ?: return
 
         runWriteAction {

@@ -15,6 +15,7 @@ import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
@@ -98,7 +99,11 @@ class TabbedExamplesView(
     private fun addTabFor(example: Example, focus: Boolean = false) {
         val info = TabInfo(JBScrollPane(example.editor)).apply {
             setObject(example)
-            text = example.name
+            val structName = example.parentStruct.name
+            if (structName != null) {
+                append("$structName: ", SimpleTextAttributes.GRAYED_ATTRIBUTES)
+            }
+            append(example.name, SimpleTextAttributes.REGULAR_ATTRIBUTES)
         }
         tabs.addTab(info)
         if (focus) tabs.select(info, true)
@@ -107,6 +112,8 @@ class TabbedExamplesView(
     private fun createAndAddExample() {
         val field = JTextField("Example")
         val list = JBList(project.classService.classes)
+        list.selectedIndex = 0
+
         val dialog = object: DialogWrapper(project) {
             init {
                 title = "Create Example"
@@ -114,8 +121,9 @@ class TabbedExamplesView(
             }
 
             override fun createCenterPanel() = panel {
-                add(field)
-                add(list)
+                layout = BorderLayout()
+                add(field, BorderLayout.NORTH)
+                add(list, BorderLayout.CENTER)
             }
 
             override fun getPreferredFocusedComponent() = field

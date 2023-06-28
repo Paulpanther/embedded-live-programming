@@ -1,5 +1,6 @@
 package com.elp.actions
 
+import com.elp.model.Example
 import com.elp.services.exampleService
 import com.elp.services.isExample
 import com.elp.util.document
@@ -27,8 +28,18 @@ class CreateClassReplacementAction: PsiElementBaseIntentionAction() {
     }
 
     override fun invoke(project: Project, editor: Editor?, element: PsiElement) {
-        val struct = (element.parent as? OCStruct)?.name ?: return
+        val struct = element.parent as? OCStruct ?: return
         val example = project.exampleService.activeExample ?: return
+        ReplacementClassCreator.create(example, struct) { offset ->
+            example.editor.requestFocusInWindow()
+            example.editor.editor?.caretModel?.moveToOffset(offset)
+        }
+    }
+}
+
+object ReplacementClassCreator {
+    fun create(example: Example, struct: OCStruct, callback: (offset: Int) -> Unit) {
+        val structName = struct.name ?: "undefined"
 
         val file = example.ownFile
         val offset = file.endOffset
@@ -36,9 +47,8 @@ class CreateClassReplacementAction: PsiElementBaseIntentionAction() {
 
         runWriteAction {
             executeCommand {
-                doc.insertString(offset, "\nclass $struct {\n\t\n};")
-                example.editor.requestFocusInWindow()
-                example.editor.editor?.caretModel?.moveToOffset(offset + struct.length + 10)
+                doc.insertString(offset, "\nclass $structName {\n\t\n};")
+                callback(offset + structName.length + 11)
             }
         }
     }

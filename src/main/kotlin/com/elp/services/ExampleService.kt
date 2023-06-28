@@ -83,7 +83,7 @@ class ExampleService(
         runWriteAction {
             val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
             val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return@runWriteAction
-            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {}")
+            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {};")
             callback(dir.add(file).containingFile.virtualFile)
         }
     }

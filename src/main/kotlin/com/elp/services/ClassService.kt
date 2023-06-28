@@ -32,16 +32,18 @@ class ClassService(
 
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
             override fun after(events: MutableList<out VFileEvent>) {
-                events.mapNotNull { it.file?.toNioPath() }.any {
+                val relevant = events.mapNotNull { it.file?.toNioPath() }.any {
                     val rootPath = root?.toNioPath() ?: return@any false
                     it.startsWith(rootPath.resolve("src")) || it.startsWith(rootPath.resolve("include"))
                 }
-                update()
+                if (relevant) {
+                    update()
+                }
             }
         })
     }
 
-    private val root = ModuleManager.getInstance(project).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull()
+    private val root get() = ModuleManager.getInstance(project).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull()
 
     private fun update() {
         files = findOpenFiles()
