@@ -53,5 +53,6 @@
                 implementationClass="com.elp.editor.NamespaceFoldingBuilder"
                 language="ObjectiveC"/>
         <psi.implicitReferenceProvider implementation="com.elp.editor.ReplacementImplicitReferenceProvider" />
+        <annotator language="ObjectiveC" implementationClass="com.elp.editor.ExampleAnnotator" />
     </extensions>
 </idea-plugin>
