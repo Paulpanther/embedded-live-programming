@@ -44,7 +44,13 @@
                 id="Embedded Live Programming Notification Group"
                 displayType="BALLOON"/>
         <lang.foldingBuilder
-                implementationClass="com.elp.editor.ReplacementFoldingBuilder"
+                implementationClass="com.elp.editor.ClassFoldingBuilder"
+                language="ObjectiveC"/>
+        <lang.foldingBuilder
+                implementationClass="com.elp.editor.IncludeFoldingBuilder"
+                language="ObjectiveC"/>
+        <lang.foldingBuilder
+                implementationClass="com.elp.editor.NamespaceFoldingBuilder"
                 language="ObjectiveC"/>
         <psi.implicitReferenceProvider implementation="com.elp.editor.ReplacementImplicitReferenceProvider" />
     </extensions>

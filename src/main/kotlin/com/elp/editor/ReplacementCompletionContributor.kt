@@ -1,8 +1,7 @@
 package com.elp.editor
 
-import com.elp.instrumentalization.Member
-import com.elp.instrumentalization.memberFields
-import com.elp.instrumentalization.memberFunctions
+import com.elp.actions.ReplacementClassCreator
+import com.elp.instrumentalization.*
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.example
@@ -27,13 +26,13 @@ class ReplacementCompletionContributor: CompletionContributor() {
         val project = file.project
         val input = parameters.originalPosition
         val parent = input?.parentOfType<OCStruct>()
+
         if (parent == null || parent.nameIdentifier == input) {
             val textBefore = file.text.subSequence(0, parameters.offset).trim()
             val hasClass = textBefore.endsWith("class") || textBefore.endsWith("struct")
             addClassCompletion(example, result, hasClass)
             return
         }
-
 
         if (input.parentsOfType<OCDeclaration>().any { it.text != input.text && it.type !is OCStructType }) return
 
@@ -52,19 +51,28 @@ class ReplacementCompletionContributor: CompletionContributor() {
                         ctx.document.insertString(ctx.tailOffset, " = ;")
                         ctx.editor.caretModel.moveToOffset(ctx.tailOffset - 1)
                     }
-                is Member.Function -> LookupElementBuilder
-                    .create(member.name)
-                    .withTypeText(member.type)
-                    .withTailText("(${member.parameters.joinToString(", ")})", true)
-                    .withInsertHandler { ctx, _ ->
-                        ctx.document.insertString(ctx.startOffset, "${member.type} ")
-                        val params = "(${member.parameters.joinToString(", ")}) {}"
-                        ctx.document.insertString(ctx.tailOffset, params)
-                        ctx.editor.caretModel.moveToOffset(ctx.tailOffset - 1)
-                    }
+                is Member.Function -> createFunctionLookup(member.name, member.type, member.parameters)
             }
             result.addElement(element)
         }
+
+        val hasLoop = originalClass.loop != null || example.ownMainStruct.loop != null
+        val hasSetup = originalClass.setup != null || example.ownMainStruct.setup != null
+        if (!hasLoop) result.addElement(createFunctionLookup("loop", "void", listOf()))
+        if (!hasSetup) result.addElement(createFunctionLookup("setup", "void", listOf()))
+    }
+
+    private fun createFunctionLookup(name: String, type: String, parameters: List<String>): LookupElementBuilder {
+        return LookupElementBuilder
+            .create(name)
+            .withTypeText(type)
+            .withTailText("(${parameters.joinToString(", ")})", true)
+            .withInsertHandler { ctx, _ ->
+                ctx.document.insertString(ctx.startOffset, "$type ")
+                val params = "(${parameters.joinToString(", ")}) {}"
+                ctx.document.insertString(ctx.tailOffset, params)
+                ctx.editor.caretModel.moveToOffset(ctx.tailOffset - 1)
+            }
     }
 
     private fun addClassCompletion(example: Example, result: CompletionResultSet, hasClass: Boolean) {
@@ -75,8 +83,10 @@ class ReplacementCompletionContributor: CompletionContributor() {
             .create("${if (hasClass) "" else "class "}$it")
             .withTailText("{};")
             .withInsertHandler { ctx, _ ->
-                ctx.document.insertString(ctx.tailOffset, " {};")
-                ctx.editor.caretModel.moveToOffset(ctx.tailOffset - 2)
+                val namespaceName = ReplacementClassCreator.nextNamespaceName(example)
+                ctx.document.insertString(ctx.startOffset, "namespace $namespaceName {\n\t")
+                ctx.document.insertString(ctx.tailOffset, " {};\n}")
+                ctx.editor.caretModel.moveToOffset(ctx.tailOffset - 4)
             })
         }
     }

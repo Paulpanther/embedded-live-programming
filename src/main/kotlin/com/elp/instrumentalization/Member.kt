@@ -77,3 +77,5 @@ val OCStruct.allMembers get() = memberFunctions + memberFields
 fun OCFunctionDefinition.asMember() = Member.Function(this)
 fun OCDeclaration.asMember() = Member.Field(this)
 
+val OCStruct.loop get() = memberFunctions.find { it.name == "loop" && it.parameters.isEmpty() && !it.isStatic }
+val OCStruct.setup get() = memberFunctions.find { it.name == "setup" && it.parameters.isEmpty() && !it.isStatic }

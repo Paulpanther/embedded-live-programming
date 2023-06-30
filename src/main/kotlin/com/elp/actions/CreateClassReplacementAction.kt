@@ -3,6 +3,7 @@ package com.elp.actions
 import com.elp.model.Example
 import com.elp.services.exampleService
 import com.elp.services.isExample
+import com.elp.util.NamingHelper
 import com.elp.util.document
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
 import com.intellij.openapi.application.runWriteAction
@@ -47,9 +48,12 @@ object ReplacementClassCreator {
 
         runWriteAction {
             executeCommand {
-                doc.insertString(offset, "\nclass $structName {\n\t\n};")
-                callback(offset + structName.length + 11)
+                val content = "\nnamespace ${nextNamespaceName(example)} {\n\tclass $structName {\n\t\t\n\t};\n}"
+                doc.insertString(offset, content)
+                callback(offset + structName.length + content.length - 6)
             }
         }
     }
+
+    fun nextNamespaceName(example: Example) = NamingHelper.nextName("Replacement", example.ownReplacementNamespaces.map { it.name ?: "" })
 }

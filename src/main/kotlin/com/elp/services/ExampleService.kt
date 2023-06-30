@@ -1,5 +1,6 @@
 package com.elp.services
 
+import com.elp.instrumentalization.ImportManager
 import com.elp.model.Example
 import com.elp.util.document
 import com.elp.util.ExampleNotification
@@ -60,6 +61,7 @@ class ExampleService(
             examplesForClass(clazz) += example
             onExamplesChanged.call()
             activeExample = example
+            ImportManager.update(example)
             callback(example)
         }
     }

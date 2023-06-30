@@ -2,6 +2,7 @@ package com.elp.model
 
 import com.elp.instrumentalization.Modification
 import com.elp.services.Clazz
+import com.elp.services.classService
 import com.elp.services.exampleKey
 import com.elp.services.exampleService
 import com.elp.util.*
@@ -10,7 +11,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.EditorTextField
 import com.jetbrains.cidr.lang.OCFileType
-import com.jetbrains.cidr.lang.psi.OCStruct
+import com.jetbrains.cidr.lang.psi.OCCppNamespace
 
 class Example(
     val project: Project,
@@ -31,11 +32,11 @@ class Example(
 
     val ownStructs get() = ownFile.structs
     val ownMainStruct get() = ownStructs.find { it.name == parentClazz.name } ?: error("Missing class in example '$name'")
+    val ownReplacedStructs get() = ownStructs - ownMainStruct
+    val ownReplacementNamespaces get() = ownFile.childrenOfType<OCCppNamespace>()
 
-    val replacedStructs get(): List<OCStruct> {
-        val main = ownMainStruct
-        return ownStructs.filter { it != main }
-    }
+    val referencedStructs get() = ownStructs.mapNotNull { own -> project.classService.classes.find { it.name == own.name }?.element }
+    val referencedFiles get() = referencedStructs.map { it.containingFile }
 
     val parentStruct get() = parentFile.struct ?: error("Missing class in file '${parentFile.name}")
 

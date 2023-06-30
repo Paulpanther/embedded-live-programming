@@ -69,12 +69,15 @@ fun VirtualFile.getPsiFile(project: Project) = PsiManager.getInstance(project).f
 val PsiFile.document get() = PsiDocumentManager.getInstance(project).getDocument(this)
 val VirtualFile.document get() = FileDocumentManager.getInstance().getDocument(this)
 
-val PsiFile.struct get() = PsiTreeUtil.findChildOfType(this, OCStruct::class.java)
-val PsiFile.structs get() = PsiTreeUtil.findChildrenOfType(this, OCStruct::class.java).toList()
+val PsiFile.struct get() = childOfType<OCStruct>()
+val PsiFile.structs get() = childrenOfType<OCStruct>()
 
 fun PsiFile.clone() = PsiFileFactory
     .getInstance(project)
     .createFileFromText(name, OCLanguage.getInstance(), text)
 
 val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virtualFile, navigationElement.startOffset)
+
+inline fun <reified T: PsiElement> PsiElement.childrenOfType(): List<T> = PsiTreeUtil.findChildrenOfType(this, T::class.java).toList()
+inline fun <reified T: PsiElement> PsiElement.childOfType(): T? = PsiTreeUtil.findChildOfType(this, T::class.java)
 

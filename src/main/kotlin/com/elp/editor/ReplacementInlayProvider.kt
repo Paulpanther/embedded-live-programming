@@ -56,12 +56,12 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
         }
 
         private fun collectReplacedClasses(struct: OCStruct) {
-            val inExample = example?.replacedStructs?.any { it.name == struct.name } == true
+            val inExample = example?.ownReplacedStructs?.any { it.name == struct.name } == true
             if (!inExample) return
 
             sink.addBlockElement(
                 struct.startOffset,
-                relatesToPrecedingText = true,
+                relatesToPrecedingText = false,
                 showAbove = true,
                 BlockInlayPriority.ANNOTATIONS,
                 navigable("Replaced in Example", struct.navigable))

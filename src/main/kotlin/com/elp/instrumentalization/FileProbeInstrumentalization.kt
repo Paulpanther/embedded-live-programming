@@ -2,6 +2,7 @@ package com.elp.instrumentalization
 
 import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
+import com.elp.util.childrenOfType
 import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
@@ -95,13 +96,11 @@ object FileProbeInstrumentalization {
     }
 
     private fun findProbeElements(file: PsiFile): List<PsiProbeLocation> {
-        val declarations = PsiTreeUtil
-            .findChildrenOfType(file, OCDeclarationStatement::class.java)
+        val declarations = file.childrenOfType<OCDeclarationStatement>()
             .filter { it.declaration.declarators.firstOrNull()?.initializer != null }
             .map { PsiProbeLocation(it.textRange, OCDeclarationStatement::class) }
 
-        val assignments = PsiTreeUtil
-            .findChildrenOfType(file, OCAssignmentExpression::class.java)
+        val assignments = file.childrenOfType<OCAssignmentExpression>()
             .filter { it.sourceExpression != null }
             .map { PsiProbeLocation(it.textRange, OCAssignmentExpression::class) }
 
