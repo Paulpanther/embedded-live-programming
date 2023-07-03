@@ -2,18 +2,19 @@ package com.elp.instrumentalization
 
 import com.elp.model.Example
 import com.elp.util.struct
+import com.elp.util.structs
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.jetbrains.cidr.lang.psi.OCStruct
 
 object FileExampleInstrumentalization {
-    fun run(example: Example, files: List<PsiFile>) {
-        val modifications = files.flatMap { collectModifications(it, example) }
-        executeModifications(example, files, modifications)
+    fun run(example: Example, files: List<PsiFile>, exampleFile: PsiFile) {
+        val modifications = files.flatMap { collectModifications(it, exampleFile) }
+        executeModifications(files, modifications)
         example.modifications = modifications
     }
 
-    private fun executeModifications(example: Example, files: List<PsiFile>, modifications: List<Modification>) {
+    private fun executeModifications(files: List<PsiFile>, modifications: List<Modification>) {
         for (toRemove in modifications.filterReplacements()) {
             toRemove.original!!.element.delete()
         }
@@ -26,9 +27,9 @@ object FileExampleInstrumentalization {
         }
     }
 
-    private fun collectModifications(file: PsiFile, example: Example): List<Modification> {
+    private fun collectModifications(file: PsiFile, exampleFile: PsiFile): List<Modification> {
         val parentStruct = file.struct ?: return listOf()
-        val replacedStruct = example.ownStructs.find { it.name == parentStruct.name } ?: return listOf()
+        val replacedStruct = exampleFile.structs.find { it.name == parentStruct.name } ?: return listOf()
 
         return replacedStruct.allMembers.map { replacedMember ->
             val clazzMember =

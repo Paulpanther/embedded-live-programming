@@ -19,12 +19,13 @@ object InstrumentalizationManager {
     fun run(project: Project) {
         val files = project.classService.classes.map { it.file.clone() }
         val example = project.exampleService.activeExample ?: return
+        val exampleFile = example.ownFile.clone()
 
         invokeLater {
             runWriteAction {
                 executeCommand {
-                    FileProbeInstrumentalization.run(files)
-                    FileExampleInstrumentalization.run(example, files)
+                    FileProbeInstrumentalization.run(files + exampleFile)
+                    FileExampleInstrumentalization.run(example, files, exampleFile)
 
                     probeService.runner.executeFiles(files + createRunnerFile(project, example))
 

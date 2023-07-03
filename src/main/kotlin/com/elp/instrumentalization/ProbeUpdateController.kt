@@ -31,7 +31,9 @@ class ProbeUpdateController: Disposable {
         invokeLater {
             probes.forEach {
                 it.applyText()
-                it.editor?.repaint(it.range.startOffset, it.range.endOffset)
+                if (it.editor?.isDisposed == false) {
+                    it.editor?.repaint(it.range.startOffset, it.range.endOffset)
+                }
             }
         }
     }

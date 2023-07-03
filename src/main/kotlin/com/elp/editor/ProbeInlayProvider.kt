@@ -21,9 +21,7 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
     override val name = "Probe"
     override val previewText = "Probe"
 
-    override fun createSettings(): NoSettings {
-        return NoSettings()
-    }
+    override fun createSettings() = NoSettings()
 
     override fun getCollectorFor(
         file: PsiFile,
