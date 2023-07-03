@@ -1,6 +1,7 @@
 package com.elp.services
 
 import com.elp.instrumentalization.ImportManager
+import com.elp.instrumentalization.InstrumentalizationManager
 import com.elp.model.Example
 import com.elp.util.document
 import com.elp.util.ExampleNotification
@@ -24,9 +25,9 @@ val exampleKey = Key.create<Example>("ELP_EXAMPLE")
 
 @Service
 class ExampleService(
-    private val project: Project
+    val project: Project
 ) {
-    val exampleDirectory = createExampleModule()
+    private val exampleDirectory = createExampleModule()
 
     val onExamplesChanged = UpdateListeners()
     private val classToExamples = mutableMapOf<Clazz, MutableList<Example>>()
@@ -41,17 +42,12 @@ class ExampleService(
             onActiveExampleChanged.call()
         }
 
-    fun examplesForClass(clazz: Clazz): MutableList<Example> {
-        return classToExamples.getOrCreate(clazz) { mutableListOf() }
+    init {
+        InstrumentalizationManager.registerOnActiveExampleChange(this)
     }
 
-    fun getActiveExampleOrShowError(error: String, consumer: (example: Example) -> Unit) {
-        val example = activeExample
-        if (example == null) {
-            ExampleNotification.notifyError(project, error)
-        } else {
-            consumer(example)
-        }
+    fun examplesForClass(clazz: Clazz): MutableList<Example> {
+        return classToExamples.getOrCreate(clazz) { mutableListOf() }
     }
 
     fun addExampleToClass(clazz: Clazz, name: String, callback: (Example) -> Unit) {

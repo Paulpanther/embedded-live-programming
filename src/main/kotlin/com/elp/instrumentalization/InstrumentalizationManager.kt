@@ -1,6 +1,7 @@
 package com.elp.instrumentalization
 
 import com.elp.model.Example
+import com.elp.services.ExampleService
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.probeService
@@ -16,6 +17,10 @@ import com.intellij.psi.PsiFileFactory
 import com.jetbrains.cidr.lang.OCLanguage
 
 object InstrumentalizationManager {
+    fun registerOnActiveExampleChange(exampleService: ExampleService) {
+        exampleService.onActiveExampleChanged.register { run(exampleService.project) }
+    }
+
     fun run(project: Project) {
         val files = project.classService.classes.map { it.file.clone() }
         val example = project.exampleService.activeExample ?: return
