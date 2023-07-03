@@ -19,6 +19,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.jetbrains.cidr.lang.psi.OCDeclaration
 import com.jetbrains.cidr.lang.psi.OCDeclarator
+import com.jetbrains.cidr.lang.psi.OCFunctionDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 
 class CreateReplacementAction : PsiElementBaseIntentionAction() {
@@ -39,7 +40,7 @@ class CreateReplacementAction : PsiElementBaseIntentionAction() {
         val example = project.exampleService.activeExample ?: return
 
         val field = (element.parent as? OCDeclarator)?.parent as? OCDeclaration ?: return
-        val function = field as? OCFunctionDefinition
+        val function = field as? OCFunctionDeclaration
         val member = function?.asMember() ?: field.asMember()
 
         val exampleStruct = example.ownStructs.find { it.name == struct.name }

@@ -47,7 +47,7 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
         ): Boolean {
             if (example == null || element !is PsiFile) return false
             val struct = element.struct ?: return false
-            val modifications = example.modifications.filter { it.struct.name == struct.name }
+            val modifications = example.modifications.filter { it.originalStruct.name == struct.name }
 
             collectReplacedClasses(struct)
             collectReplacements(struct, modifications)

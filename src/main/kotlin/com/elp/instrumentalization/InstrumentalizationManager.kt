@@ -1,10 +1,15 @@
 package com.elp.instrumentalization
 
+import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService
-import com.elp.util.error
+import com.elp.services.probeService
+import com.elp.util.clone
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
 import com.intellij.codeInsight.hints.InlayHintsPassFactory
+import com.intellij.openapi.application.invokeLater
+import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
@@ -12,56 +17,44 @@ import com.jetbrains.cidr.lang.OCLanguage
 
 object InstrumentalizationManager {
     fun run(project: Project) {
-        val psiFiles = project.classService.classes.map { it.file }
+        val files = project.classService.classes.map { it.file.clone() }
+        val example = project.exampleService.activeExample ?: return
 
-        FileProbeInstrumentalization.run(psiFiles) { oldToNewFiles ->
-            buildRunnableProject(project, oldToNewFiles) {
-//                probeService.runner.executeFiles(it)
+        invokeLater {
+            runWriteAction {
+                executeCommand {
+                    FileProbeInstrumentalization.run(files)
+                    FileExampleInstrumentalization.run(example, files)
+
+                    probeService.runner.executeFiles(files + createRunnerFile(project, example))
+
+                    @Suppress("UnstableApiUsage")
+                    InlayHintsPassFactory.forceHintsUpdateOnNextPass()
+                    for (file in example.referencedFiles) {
+                        DaemonCodeAnalyzer.getInstance(project).restart(file)
+                    }
+                }
             }
         }
     }
 
-    private fun buildRunnableProject(
-        project: Project,
-        oldToNewFiles: Map<PsiFile, PsiFile>,
-        finishedFilesConsumer: (files: List<PsiFile>) -> Unit
-    ) {
-        val example = project.exampleService.activeExample
-            ?: return project.error("Create an example to run the project")
-
-        val file = example.parentClazz.file
-        val newFiles = oldToNewFiles.values.toList()
-
-        FileExampleInstrumentalization.run(example, newFiles) { exampleFiles, modifications ->
-            // Replace file in list
-//            val finishedFiles = oldToNewFiles.map { (oldFile, newFile) ->
-//                if (oldFile == file) exampleFile else newFile
-//            }
-//            finishedFilesConsumer(finishedFiles + createRunnerFile(project, exampleClassName, exampleFile.name))
-
-            example.modifications = modifications
-
-            @Suppress("UnstableApiUsage")
-            InlayHintsPassFactory.forceHintsUpdateOnNextPass()
-            DaemonCodeAnalyzer.getInstance(project).restart(file)  // TODO restart other modified files too
-        }
-    }
-
-    private fun createRunnerFile(project: Project, exampleClassName: String, exampleFileName: String) =
-        PsiFileFactory.getInstance(project).createFileFromText(
+    private fun createRunnerFile(project: Project, example: Example): PsiFile {
+        val structName = example.ownMainStruct.name ?: "undefined"
+        return PsiFileFactory.getInstance(project).createFileFromText(
             OCLanguage.getInstance(), """
-            #include "$exampleFileName"
+            #include "${example.parentFile.name}"
             #include "code.h"
             
-            $exampleClassName* ____m = nullptr;
+            $structName* ____m = nullptr;
             
             void setup() {
-                ____m = $exampleClassName::setup();
+                ____m = new $structName();
             }
             
             void loop() {
                 ____m->loop();
             }
-        """.trimIndent())
-            .apply { name = "________main.cpp" }
+        """.trimIndent()
+        ).apply { this.name = "________main.cpp" }
+    }
 }

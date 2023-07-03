@@ -3,6 +3,7 @@ package com.elp.instrumentalization
 import com.elp.util.navigable
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.jetbrains.cidr.lang.psi.OCDeclaration
+import com.jetbrains.cidr.lang.psi.OCFunctionDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.types.OCStructType
@@ -16,7 +17,7 @@ sealed class Member(
     abstract val navigable: OpenFileDescriptor?
 
     class Function(
-        function: OCFunctionDefinition
+        function: OCFunctionDeclaration
     ) : Member(function) {
         val parameters = function.parameters?.map { it.name } ?: listOf()
         override val name = function.name ?: "undefined"
@@ -66,15 +67,15 @@ sealed class Member(
     protected val staticStr = if (isStatic) "static " else ""
 }
 
-val OCStruct.memberFunctions get() = children.filterIsInstance<OCFunctionDefinition>().map { it.asMember() }
+val OCStruct.memberFunctions get() = children.filterIsInstance<OCFunctionDeclaration>().map { it.asMember() }
 val OCStruct.memberFields
     get() = children
         .filterIsInstance<OCDeclaration>()
-        .filter { it !is OCFunctionDefinition && it.type !is OCStructType }
+        .filter { it !is OCFunctionDeclaration && it.type !is OCStructType }
         .map { it.asMember() }
 val OCStruct.allMembers get() = memberFunctions + memberFields
 
-fun OCFunctionDefinition.asMember() = Member.Function(this)
+fun OCFunctionDeclaration.asMember() = Member.Function(this)
 fun OCDeclaration.asMember() = Member.Field(this)
 
 val OCStruct.loop get() = memberFunctions.find { it.name == "loop" && it.parameters.isEmpty() && !it.isStatic }

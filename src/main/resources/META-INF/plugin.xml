@@ -17,6 +17,9 @@
         <codeInsight.inlayProvider
                 language="ObjectiveC"
                 implementationClass="com.elp.editor.ReplacementInlayProvider"/>
+        <codeInsight.inlayProvider
+                language="ObjectiveC"
+                implementationClass="com.elp.editor.ProbeInlayProvider"/>
         <fileDocumentManagerListener
                 implementation="com.elp.events.FileChangeListener"/>
         <intentionAction>

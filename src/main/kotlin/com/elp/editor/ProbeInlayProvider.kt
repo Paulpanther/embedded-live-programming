@@ -12,6 +12,8 @@ import com.intellij.refactoring.suggested.startOffset
 import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.cidr.lang.psi.OCAssignmentExpression
 import com.jetbrains.cidr.lang.psi.OCDeclarationStatement
+import com.jetbrains.cidr.lang.psi.OCExpression
+import com.jetbrains.cidr.lang.psi.OCReturnStatement
 import javax.swing.JComponent
 
 class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
@@ -35,20 +37,21 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
                 editor: Editor,
                 sink: InlayHintsSink
             ): Boolean {
-                fun createInlay(element: PsiElement) {
-                    val path = file.virtualFile.path
-                    val probe = probeService.probes[path]?.find { it.range == element.textRange } ?: return
-                    sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory, editor as EditorImpl), true)
-                }
+                matchExpression(element)
+                return true
+            }
 
-                return when (element) {
-                    is OCDeclarationStatement,
-                    is OCAssignmentExpression -> {
-                        createInlay(element)
-                        true
-                    }
-                    else -> true
+            private fun matchExpression(element: PsiElement) {
+                when (element) {
+                    is OCDeclarationStatement -> createInlay(element.declaration.declarators.firstOrNull()?.initializer ?: return)
+                    is OCAssignmentExpression -> createInlay(element.sourceExpression ?: return)
+                    is OCReturnStatement -> createInlay(element.expression ?: return)
                 }
+            }
+
+            private fun createInlay(element: OCExpression) {
+                val probe = probeService.probes[file.name]?.find { it.range == element.textRange } ?: return
+                sink.addInlineElement(element.startOffset, false, probe.createPresentation(factory, editor as EditorImpl), true)
             }
 
         }

@@ -9,6 +9,7 @@ import com.intellij.openapi.util.TextRange
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
 import com.intellij.util.ProcessingContext
+import com.jetbrains.cidr.lang.psi.OCFunctionDeclaration
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 
 class ReplacementReferenceContributor: PsiReferenceContributor() {
@@ -17,7 +18,7 @@ class ReplacementReferenceContributor: PsiReferenceContributor() {
             override fun getReferencesByElement(element: PsiElement, context: ProcessingContext): Array<PsiReference> {
                 val file = element.containingFile
                 if (!file.isExample) return arrayOf()
-                val func = element as? OCFunctionDefinition ?: return arrayOf()
+                val func = element as? OCFunctionDeclaration ?: return arrayOf()
                 return arrayOf(FunctionReference(func, TextRange(0, func.textLength)))
             }
         })
@@ -30,7 +31,7 @@ class FunctionReference(
 ): PsiReferenceBase<PsiElement>(element, textRange) {
     override fun resolve(): PsiElement? {
         val example = element.containingFile.example ?: return null
-        val self = (element as? OCFunctionDefinition)?.asMember() ?: return null
+        val self = (element as? OCFunctionDeclaration)?.asMember() ?: return null
         val original = example.parentClazz.element
         val functions = original.memberFunctions
         val memberRef = functions.find { it equalsIgnoreFile self } ?: return null

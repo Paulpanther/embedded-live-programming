@@ -3,118 +3,63 @@ package com.elp.instrumentalization
 import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
 import com.elp.util.childrenOfType
-import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.executeCommand
-import com.intellij.openapi.util.TextRange
-import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiFileFactory
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfTypes
-import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCAssignmentExpression
-import com.jetbrains.cidr.lang.psi.OCCallExpression
 import com.jetbrains.cidr.lang.psi.OCDeclarationStatement
+import com.jetbrains.cidr.lang.psi.OCExpression
+import com.jetbrains.cidr.lang.psi.OCReturnStatement
 import com.jetbrains.cidr.lang.util.OCElementFactory
-import kotlin.reflect.KClass
 
 /**
  * Find Probes
  * Store unfinished ProbePresentations in Service
- * Rewrite copy of file with probes
+ * Rewrite file with probes
  **/
 object FileProbeInstrumentalization {
-    fun run(files: List<PsiFile>, consumer: (files: Map<PsiFile, PsiFile>) -> Unit) {
-        val probesPerFile = extractProbes(files)
+    fun run(files: List<PsiFile>) {
+        val expressionPerFile = files.associateWith { findProbes(it) }
 
-        for ((file, probeLocations) in probesPerFile) {
-            val probes = probeLocations.map { ProbePresentation(it.code, it.range) }
-            probeService.probes[file.virtualFile.path] = probes.toMutableList()
+        var code = 0
+        val probesPerFile = expressionPerFile
+            .mapValues { (_, expressions) -> expressions.map { ProbeLocation(it, code++) } }
+
+        for ((file, probes) in probesPerFile) {
+            val presentations = probes.map { ProbePresentation(it.code, it.element.textRange) }
+            probeService.probes[file.name] = presentations.toMutableList()
         }
 
-        invokeLater {
-            runWriteAction {
-                executeCommand {
-                    val clones = probesPerFile
-                        .map { (file, probes) -> file to generateInstrumentedFile(file, probes) }
-                        .toMap()
-                    consumer(clones)
-                }
-            }
+        for ((file, probes) in probesPerFile) {
+            instrumentFile(file, probes)
         }
     }
 
-    private fun extractProbes(files: List<PsiFile>): Map<PsiFile, List<PsiProbeLocation>> {
-        val probePerFile = mutableMapOf<PsiFile, List<PsiProbeLocation>>()
-
-        var i = 0
-        for (file in files) {
-            probePerFile[file] = findProbeElements(file).onEach { it.code = i++ }
-        }
-
-        return probePerFile
-    }
-
-    private fun generateInstrumentedFile(file: PsiFile, psiProbes: List<PsiProbeLocation>): PsiFile {
-        val clone = PsiFileFactory
-            .getInstance(file.project)
-            .createFileFromText(file.name, OCLanguage.getInstance(), file.text)
-
-        // Has to be done before loop, since loop changes offsets
-        val clonedProbeElements = psiProbes
-            .associate {
-                it.code to (clone.findElementAt(it.range.startOffset)?.parentOfTypes(it.parent)
-                    ?: error("Could not find Psi Element of Probe"))
-            }
-
-        for ((code, element) in clonedProbeElements) {
-            val right = when (element) {
-                is OCDeclarationStatement -> declarationGetReplacedElement(element)
-                is OCAssignmentExpression -> assignmentGetReplacedElement(element)
-                else -> error("Invalid element type")
-            }
-
+    private fun instrumentFile(file: PsiFile, probes: List<ProbeLocation>): PsiFile {
+        for (probe in probes) {
             // int a = 2 + 3 -> int a = add_probe(x, 2 + 3)
             val expr = OCElementFactory
-                .callExpression("add_probe", listOf(code.toString(), right.text), element)
-            right.replace(expr)
+                .callExpression("add_probe", listOf(probe.code.toString(), probe.element.text), probe.element)
+            probe.element.replace(expr)
         }
-        return clone
+        return file
     }
 
-    private fun declarationGetReplacedElement(element: OCDeclarationStatement): PsiElement {
-        return element.declaration.declarators.firstOrNull()?.initializer!! // Cannot be null, we tested this before
-    }
+    private fun findProbes(file: PsiFile): List<OCExpression> {
+        val declarations = file
+            .childrenOfType<OCDeclarationStatement>()
+            .mapNotNull { it.declaration.declarators.firstOrNull()?.initializer }
 
-    private fun assignmentGetReplacedElement(element: OCAssignmentExpression): PsiElement {
-        return element.sourceExpression!! // Cannot be null, we tested this before
-    }
+        val assignments = file
+            .childrenOfType<OCAssignmentExpression>()
+            .mapNotNull { it.sourceExpression }
 
-    private fun argumentsGetReplacedElements(element: OCCallExpression): List<PsiElement> {
-        return element.arguments
-    }
+        val returns = file
+            .childrenOfType<OCReturnStatement>()
+            .mapNotNull { it.expression }
 
-    private fun findProbeElements(file: PsiFile): List<PsiProbeLocation> {
-        val declarations = file.childrenOfType<OCDeclarationStatement>()
-            .filter { it.declaration.declarators.firstOrNull()?.initializer != null }
-            .map { PsiProbeLocation(it.textRange, OCDeclarationStatement::class) }
-
-        val assignments = file.childrenOfType<OCAssignmentExpression>()
-            .filter { it.sourceExpression != null }
-            .map { PsiProbeLocation(it.textRange, OCAssignmentExpression::class) }
-
-//        val arguments = PsiTreeUtil
-//            .findChildrenOfType(file, OCCallExpression::class.java)
-//            .filter { it.arguments.isNotEmpty() }
-//            .flatMap { it.arguments.map { arg -> PsiProbeLocation(arg.textRange, OCCallExpression::class) } }
-
-        return declarations + assignments //+ arguments
+        return declarations + assignments + returns
     }
 }
 
-data class PsiProbeLocation(
-    val range: TextRange,
-    val parent: KClass<out PsiElement>,
-    var code: Int = 0
-)
+private data class ProbeLocation(
+    val element: OCExpression,
+    val code: Int)

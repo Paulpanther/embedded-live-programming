@@ -1,36 +1,27 @@
 package com.elp.instrumentalization
 
 import com.elp.model.Example
-import com.elp.util.clone
 import com.elp.util.struct
-import com.intellij.openapi.application.invokeLater
-import com.intellij.openapi.application.runWriteAction
-import com.intellij.openapi.command.executeCommand
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.jetbrains.cidr.lang.psi.OCStruct
 
 object FileExampleInstrumentalization {
-    fun run(
-        example: Example,
-        files: List<PsiFile>,
-        consumer: (files: List<PsiFile>, modifications: List<Modification>) -> Unit
-    ) {
-        val clones = files.map { it.clone() }
-        val modifications = clones.flatMap { collectModifications(it, example) }
+    fun run(example: Example, files: List<PsiFile>) {
+        val modifications = files.flatMap { collectModifications(it, example) }
+        executeModifications(example, files, modifications)
+        example.modifications = modifications
+    }
 
-        invokeLater {
-            runWriteAction {
-                executeCommand {
-//                    for (toRemove in modifications.filterReplacements()) {
-//                        toRemove.original!!.element.delete()
-//                    }
-//
-//                    var anchor: PsiElement? = clazz.members.lastOrNull()
-//                    for (modification in modifications) {
-//                        anchor = clazz.addAfter(modification.added.element, anchor)
-//                    }
-                    consumer(clones, modifications)
-                }
+    private fun executeModifications(example: Example, files: List<PsiFile>, modifications: List<Modification>) {
+        for (toRemove in modifications.filterReplacements()) {
+            toRemove.original!!.element.delete()
+        }
+        val structs = files.mapNotNull { it.struct }
+        for (struct in structs) {
+            var anchor: PsiElement? = struct.members.lastOrNull()
+            for (modification in modifications.filter { it.originalStruct == struct }) {
+                anchor = struct.addAfter(modification.added.element, anchor)
             }
         }
     }
@@ -40,16 +31,18 @@ object FileExampleInstrumentalization {
         val replacedStruct = example.ownStructs.find { it.name == parentStruct.name } ?: return listOf()
 
         return replacedStruct.allMembers.map { replacedMember ->
-            val clazzMember = parentStruct.allMembers.find { parentMember -> replacedMember equalsIgnoreFile parentMember }
+            val clazzMember =
+                parentStruct.allMembers.find { parentMember -> replacedMember equalsIgnoreFile parentMember }
             Modification(parentStruct, replacedMember, clazzMember)
         }
     }
 }
 
 data class Modification(
-    val struct: OCStruct,
+    val originalStruct: OCStruct,
     val added: Member,
-    val original: Member?) {
+    val original: Member?
+) {
 
     val isReplacement = original != null
     val isAddition = original == null
