@@ -25,7 +25,7 @@ class ProbePresentation(
 //                (wrappedPresentation as WithAttributesPresentation)
 //                    .presentation as InsetPresentation).presentation as TextInlayPresentation
 
-        val p = SparklineProbe(0, 4097, editor.lineHeight)
+        val p = SparklineProbe(0, 4097, editor.lineHeight, InlayTextMetrics.create(editor, 9))
         presentation = p
 //        return factory.inset(p, top = 5, left = 3) // for text
         return p

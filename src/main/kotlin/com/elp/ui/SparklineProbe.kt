@@ -3,10 +3,17 @@
 package com.elp.ui
 
 import com.intellij.codeInsight.hints.presentation.BasePresentation
+import com.intellij.codeInsight.hints.presentation.InlayTextMetrics
+import com.intellij.ide.ui.AntialiasingType
+import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.ui.JBColor
+import com.intellij.util.ui.UIUtil
+import java.awt.Font
 import java.awt.Graphics2D
+import java.awt.RenderingHints
 import java.util.*
+import javax.swing.plaf.FontUIResource
 import kotlin.math.roundToInt
 
 private class ValuesLine(val totalSize: Int) {
@@ -30,7 +37,8 @@ private class ValuesLine(val totalSize: Int) {
 class SparklineProbe(
     private val minValue: Int,
     private val maxValue: Int,
-    override val height: Int
+    override val height: Int,
+    val metrics: InlayTextMetrics,
 ): BasePresentation() {
     private var value: Int = 0
 
@@ -50,8 +58,18 @@ class SparklineProbe(
     }
 
     override fun paint(g: Graphics2D, attributes: TextAttributes) {
-        g.color = JBColor.RED
-        g.drawPolyline(line.getX(), line.getY(), line.size)
+        val savedHint = g.getRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING)
+
+        try {
+            g.color = JBColor.RED
+            g.drawLine(0, minValue, 0, maxValue)
+            g.drawPolyline(line.getX(), line.getY(), line.size)
+
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, AntialiasingType.getKeyForCurrentScope(false))
+            g.drawString(value.toString(), 0, 0)
+        } finally {
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, savedHint)
+        }
     }
 
     override fun toString() = value.toString()
