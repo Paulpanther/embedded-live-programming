@@ -46,7 +46,7 @@ class Frame(
     private fun mockExecute() {
         var i = 0
 
-        Timer().scheduleAtFixedRate(0L, 10L) {
+        Timer().scheduleAtFixedRate(0L, 20L) {
             for (probe in probeService.probes.values.flatten()) {
                 probe.updateText(i.toString())
             }
