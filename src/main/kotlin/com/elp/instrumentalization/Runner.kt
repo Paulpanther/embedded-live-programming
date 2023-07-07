@@ -32,6 +32,8 @@ class Frame(
 
     @Suppress("unused")
     private fun onIteration(probes: Array<Probe>): Boolean {
+//        probeService.stopLoading()
+
         val realProbes = probeService.probes.values.flatten()
         val probesByCode = probes.groupBy { it.code }
 
