@@ -36,9 +36,9 @@ class Frame(
         val probesByCode = probes.groupBy { it.code }
 
         for (realProbe in realProbes) {
-            val executedProbes = probesByCode[realProbe.code]
-            val text = executedProbes?.joinToString(", ") { it.value } ?: continue
-            realProbe.updateText(text)
+            val executedProbes = probesByCode[realProbe.code] ?: listOf()
+            val lastExecutedProbe = executedProbes.lastOrNull() ?: continue
+            realProbe.update(lastExecutedProbe)
         }
         return running
     }
@@ -48,7 +48,7 @@ class Frame(
 
         Timer().scheduleAtFixedRate(0L, 20L) {
             for (probe in probeService.probes.values.flatten()) {
-                probe.updateText(i.toString())
+                probe.update(Probe(probe.code, i.toString(), "int"))
             }
             i = (i + 10) % 4097
 

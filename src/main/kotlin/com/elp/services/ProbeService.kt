@@ -13,7 +13,7 @@ class ProbeService: Disposable {
     var probes = mutableMapOf<String, List<ProbePresentation>>()
 
     val probeUpdater = ProbeUpdateController().start()
-    val runner = Runner(mock = true).start()
+    val runner = Runner(mock = false).start()
 
     init {
         Disposer.register(this, runner)
