@@ -102,7 +102,7 @@ class SparklineProbe<T>(
     override val width get(): Int {
         val limit = if (showLimit) limitStringWidth + gapX else 0
         val line = if (showLine) lineWidth + gapX else 0
-        return limit + line + valueStringWidth
+        return max(limit + line + valueStringWidth, 10)
     }
 
     override val height = editor.lineHeight

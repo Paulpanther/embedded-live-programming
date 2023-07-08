@@ -41,9 +41,11 @@ sealed class Member(
         field: OCDeclaration
     ) : Member(field) {
         val type = field.type.name
+        val typeElement = field.type
         override val name = field.declarators.firstOrNull()?.name ?: "undefined"
         override val navigable = field.declarators.firstOrNull()?.nameIdentifier?.navigable
         val value = field.declarators.firstOrNull()?.initializer?.text
+        val initializer = field.declarators.firstOrNull()?.initializer
 
         override fun equalsIgnoreFile(other: Member) =
             super.equalsIgnoreFile(other) && other is Field && other.type == type
