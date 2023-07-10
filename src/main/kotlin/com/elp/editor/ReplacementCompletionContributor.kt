@@ -80,7 +80,7 @@ class ReplacementCompletionContributor: CompletionContributor() {
         val usedClasses = example.ownStructs.mapNotNull { it.name }
         val remainingClasses = allClasses - usedClasses.toSet()
         remainingClasses.map { result.addElement(LookupElementBuilder
-            .create("${if (hasClass) "" else "class "}$it")
+            .create("${if (hasClass) "" else "struct "}$it")
             .withTailText("{};")
             .withInsertHandler { ctx, _ ->
                 val namespaceName = ReplacementClassCreator.nextNamespaceName(example)

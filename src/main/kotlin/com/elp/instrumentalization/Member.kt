@@ -19,7 +19,7 @@ sealed class Member(
     class Function(
         function: OCFunctionDeclaration
     ) : Member(function) {
-        val parameters = function.parameters?.map { it.name } ?: listOf()
+        val parameters = function.parameters?.map { "${it.type.name} ${it.name}" } ?: listOf()
         override val name = function.name ?: "undefined"
         override val navigable = function.nameIdentifier?.navigable
         val type = function.type.name

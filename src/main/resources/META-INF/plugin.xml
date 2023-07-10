@@ -57,5 +57,7 @@
                 language="ObjectiveC"/>
         <psi.implicitReferenceProvider implementation="com.elp.editor.ReplacementImplicitReferenceProvider" />
         <annotator language="ObjectiveC" implementationClass="com.elp.editor.ExampleAnnotator" />
+        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.elp.editor.ExampleLineMarkerProvider" />
+        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.elp.editor.ReplacementLineMarkerProvider" />
     </extensions>
 </idea-plugin>

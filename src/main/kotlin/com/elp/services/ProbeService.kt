@@ -7,20 +7,15 @@ import com.elp.ui.ProbePresentation
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
-import com.intellij.openapi.editor.Editor
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.util.Disposer
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import com.intellij.ui.EditorNotificationPanel
 
 @Service
 class ProbeService: Disposable {
     var probes = mutableMapOf<String, List<ProbePresentation>>()
 
     val probeUpdater = ProbeUpdateController().start()
-    val runner = Runner(mock = false).start()
+    val runner = Runner(mock = true).start()
     private var loading: LoadingNotification? = null
 
     init {
