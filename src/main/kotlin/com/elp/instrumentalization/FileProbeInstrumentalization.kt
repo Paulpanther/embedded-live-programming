@@ -2,6 +2,7 @@ package com.elp.instrumentalization
 
 import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
+import com.elp.util.childAtRangeOfType
 import com.elp.util.childrenOfType
 import com.intellij.psi.PsiFile
 import com.jetbrains.cidr.lang.psi.OCAssignmentExpression
@@ -18,17 +19,22 @@ import com.jetbrains.cidr.lang.util.OCElementFactory
 object FileProbeInstrumentalization {
     fun run(files: List<PsiFile>) {
         val expressionPerFile = files.associateWith { findProbes(it) }
+        val userExpressionsPerFile = files.associateWith { findUserProbes(it) }
 
         var code = 0
         val probesPerFile = expressionPerFile
             .mapValues { (_, expressions) -> expressions.map { ProbeLocation(it, code++) } }
+        val userProbesPerFile = userExpressionsPerFile
+            .mapValues { (_, expressions) -> expressions.map { ProbeLocation(it, code++, true) }.toMutableList() }
 
         for ((file, probes) in probesPerFile) {
-            val presentations = probes.map { ProbePresentation(it.code, it.element.textRange) }
+            val presentations = probes.map { ProbePresentation(it.code, it.element.textRange, it.userProbe) }
             probeService.probes[file.name] = presentations.toMutableList()
         }
+        probeService.foundUserProbes = userExpressionsPerFile
+        probeService.requestedUserProbes.clear()
 
-        for ((file, probes) in probesPerFile) {
+        for ((file, probes) in probesPerFile + userProbesPerFile) {
             instrumentFile(file, probes)
         }
     }
@@ -58,8 +64,14 @@ object FileProbeInstrumentalization {
 
         return declarations + assignments + returns
     }
+
+    private fun findUserProbes(file: PsiFile): List<OCExpression> {
+        val ranges = probeService.requestedUserProbes[file.virtualFile] ?: return listOf()
+        return ranges.mapNotNull { file.childAtRangeOfType<OCExpression>(it) }
+    }
 }
 
 private data class ProbeLocation(
     val element: OCExpression,
-    val code: Int)
+    val code: Int,
+    val userProbe: Boolean = false)

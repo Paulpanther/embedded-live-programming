@@ -9,6 +9,7 @@ import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
 import com.elp.util.UpdateListeners
 import com.intellij.openapi.application.runWriteAction
+import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.module.ModuleManager
@@ -84,9 +85,11 @@ class ExampleService(
         val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
         val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return callback(null)
         runWriteAction {
-            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {void liveLoop() {}};")
-            CodeStyleManager.getInstance(project).reformat(file)
-            callback(dir.add(file).containingFile.virtualFile)
+            executeCommand {
+                val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {void liveLoop() {}};")
+                CodeStyleManager.getInstance(project).reformat(file)
+                callback(dir.add(file).containingFile.virtualFile)
+            }
         }
     }
 }

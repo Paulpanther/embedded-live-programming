@@ -9,6 +9,7 @@ import com.elp.services.exampleService
 import com.elp.services.isExample
 import com.elp.util.NamingHelper
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
@@ -107,8 +108,10 @@ fun showCreateExampleDialog(project: Project, initialClass: Clazz?, callback: (E
         }
     }
 
-    if (dialog.showAndGet()) {
-        val clazz = list.selectedValue!!
-        clazz.addExample(field.text, callback)
+    invokeLater {
+        if (dialog.showAndGet()) {
+            val clazz = list.selectedValue!!
+            clazz.addExample(field.text, callback)
+        }
     }
 }

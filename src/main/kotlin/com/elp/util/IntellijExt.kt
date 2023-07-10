@@ -14,9 +14,12 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.elementsAroundOffsetUp
+import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCStruct
@@ -81,3 +84,12 @@ val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virt
 inline fun <reified T: PsiElement> PsiElement.childrenOfType(): List<T> = PsiTreeUtil.findChildrenOfType(this, T::class.java).toList()
 inline fun <reified T: PsiElement> PsiElement.childOfType(): T? = PsiTreeUtil.findChildOfType(this, T::class.java)
 
+inline fun <reified T: PsiElement> PsiElement.childAtRangeOfType(range: TextRange): T? {
+    var element = findElementAt(range.startOffset) ?: return null
+    while (element.textRange != range || element !is T) {
+        if (element.textRange !in range) return null
+        element = element.parentOfType<T>() ?: return null
+    }
+
+    return element
+}

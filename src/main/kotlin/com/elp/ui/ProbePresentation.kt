@@ -10,14 +10,15 @@ import com.intellij.openapi.util.TextRange
 
 class ProbePresentation(
     val code: Int,
-    val range: TextRange
+    val range: TextRange,
+    val isUserProbe: Boolean = false
 ) {
     private var probe: Probe? = null
     private var presentation: SparklineProbeWrapper? = null
     var editor: EditorImpl? = null
     var markedForUpdate = false
 
-    fun createPresentation(factory: PresentationFactory, editor: EditorImpl): InlayPresentation {
+    fun createPresentation(editor: EditorImpl): InlayPresentation {
         this.editor = editor
         return SparklineProbeWrapper(editor).also { presentation = it }
     }

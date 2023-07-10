@@ -34,6 +34,9 @@
         <intentionAction>
             <className>com.elp.actions.CreateClassReplacementAction</className>
         </intentionAction>
+        <intentionAction>
+            <className>com.elp.actions.CreateProbeAction</className>
+        </intentionAction>
         <completion.contributor
                 order="first, before clangd"
                 language="ObjectiveC"
@@ -59,5 +62,6 @@
         <annotator language="ObjectiveC" implementationClass="com.elp.editor.ExampleAnnotator" />
         <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.elp.editor.ExampleLineMarkerProvider" />
         <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.elp.editor.ReplacementLineMarkerProvider" />
+        <annotator language="ObjectiveC" implementationClass="com.elp.editor.ProbeAnnotator" />
     </extensions>
 </idea-plugin>
