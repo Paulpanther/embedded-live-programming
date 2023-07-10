@@ -1,5 +1,6 @@
 package com.elp.services
 
+import com.elp.actions.showCreateExampleDialog
 import com.elp.instrumentalization.ImportManager
 import com.elp.instrumentalization.InstrumentalizationManager
 import com.elp.model.Example
@@ -19,6 +20,7 @@ import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.jetbrains.cidr.lang.OCLanguage
+import com.jetbrains.cidr.ui.createMaybeInvalidItem
 import com.jetbrains.rd.util.getOrCreate
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
@@ -78,9 +80,9 @@ class ExampleService(
     }
 
     private fun createExampleFile(clazz: Clazz, callback: (VirtualFile?) -> Unit) {
+        val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
+        val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return callback(null)
         runWriteAction {
-            val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
-            val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return@runWriteAction
             val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {};")
             callback(dir.add(file).containingFile.virtualFile)
         }

@@ -1,29 +1,23 @@
 package com.elp.ui.toolWindow
 
-import com.elp.services.Clazz
+import com.elp.actions.showCreateExampleDialog
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService
-import com.elp.util.NamingHelper
-import com.elp.util.panel
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.ValidationInfo
 import com.intellij.ui.SimpleTextAttributes
-import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.tabs.TabInfo
 import com.intellij.ui.tabs.impl.JBEditorTabs
 import java.awt.BorderLayout
-import javax.swing.JComponent
 import javax.swing.JPanel
-import javax.swing.JTextField
 
 class TabbedExamplesView(
     private val project: Project,
@@ -39,7 +33,10 @@ class TabbedExamplesView(
 
         val group = DefaultActionGroup(object: AnAction("Add Example", "Create a new example for the selected class", AllIcons.General.Add ) {
             override fun actionPerformed(e: AnActionEvent) {
-                createAndAddExample()
+                val clazz = project.classService.currentClass
+                runWriteAction {
+                    showCreateExampleDialog(project, clazz)
+                }
             }
         })
 
@@ -110,34 +107,5 @@ class TabbedExamplesView(
     }
 
     private fun createAndAddExample() {
-        val field = JTextField("Example")
-        val list = JBList(project.classService.classes)
-        list.selectedIndex = 0
-
-        val dialog = object: DialogWrapper(project) {
-            init {
-                title = "Create Example"
-                init()
-            }
-
-            override fun createCenterPanel() = panel {
-                layout = BorderLayout()
-                add(field, BorderLayout.NORTH)
-                add(list, BorderLayout.CENTER)
-            }
-
-            override fun getPreferredFocusedComponent() = field
-
-            override fun doValidate(): ValidationInfo? {
-                val clazz = list.selectedValue ?: return ValidationInfo("No class selected", list)
-                val nameUsed = clazz.examples.any { it.name == field.text }
-                if (nameUsed) return ValidationInfo("Name already in use", field)
-                return null
-            }
-        }
-        if (dialog.showAndGet()) {
-            val clazz = list.selectedValue!!
-            clazz.addExample(field.text)
-        }
     }
 }

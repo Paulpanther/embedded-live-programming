@@ -1,13 +1,13 @@
 package com.elp.services
 
 import com.elp.model.Example
-import com.elp.util.UpdateListeners
 import com.elp.util.getPsiFile
 import com.elp.util.recursiveChildren
 import com.elp.util.struct
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.DumbService
 import com.intellij.openapi.project.Project
@@ -24,8 +24,12 @@ class ClassService(
     private var files = listOf<VirtualFile>()
     var classes = listOf<Clazz>()
         private set
-    val onClassesChanged = UpdateListeners()
     private var hasRequestedSmartExecution = false
+
+    val currentClass get(): Clazz? {
+        val editor = FileEditorManager.getInstance(project).selectedEditor
+        return editor?.file?.let { findClass(it) }
+    }
 
     init {
         update()
@@ -49,7 +53,6 @@ class ClassService(
         files = findOpenFiles()
         executeSmart {
             classes = findClasses()
-            onClassesChanged.call()
         }
     }
 
@@ -90,7 +93,7 @@ class Clazz(
 
     val examples get() = exampleService.examplesForClass(this)
 
-    fun addExample(name: String, callback: (Example) -> Unit = {}) {
+    fun addExample(name: String, callback: (Example) -> Unit) {
         exampleService.addExampleToClass(this, name, callback)
     }
 

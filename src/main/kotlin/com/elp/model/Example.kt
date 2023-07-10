@@ -6,9 +6,11 @@ import com.elp.services.classService
 import com.elp.services.exampleKey
 import com.elp.services.exampleService
 import com.elp.util.*
+import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.PsiDocumentManager
 import com.intellij.ui.EditorTextField
 import com.jetbrains.cidr.lang.OCFileType
 import com.jetbrains.cidr.lang.psi.OCCppNamespace
@@ -47,6 +49,15 @@ class Example(
     fun navigateTo(descriptor: OpenFileDescriptor) {
         editor.component.requestFocusInWindow()
         descriptor.navigateIn(editor.editor ?: return project.error("Could not navigate to element"))
+    }
+
+    fun commitDocument(callback: () -> Unit) {
+        val manager = PsiDocumentManager.getInstance(project)
+        if (manager.isCommitted(ownDocument)) callback()
+        runWriteAction {
+            manager.commitDocument(ownDocument)
+            callback()
+        }
     }
 
     override fun toString() = name
