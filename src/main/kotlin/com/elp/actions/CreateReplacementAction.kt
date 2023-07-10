@@ -52,7 +52,7 @@ object ReplacementCreator {
     fun create(example: Example, struct: OCStruct, member: Member): Boolean {
         val exampleStruct = example.ownStructs.find { it.name == struct.name }
         if (exampleStruct == null) {
-            ReplacementClassCreator.create(example, struct) { createReplacement(member, example, it) }
+            ReplacementClassCreator.create(example, struct) { /*createReplacement(member, example, it)*/ }
         } else {
             val exampleMembers = exampleStruct.memberFields + exampleStruct.memberFunctions
             if (exampleMembers.any { it equalsIgnoreFile member }) return false

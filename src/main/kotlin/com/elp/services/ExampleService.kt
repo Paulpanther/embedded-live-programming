@@ -19,6 +19,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
+import com.intellij.psi.codeStyle.CodeStyleManager
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.ui.createMaybeInvalidItem
 import com.jetbrains.rd.util.getOrCreate
@@ -83,7 +84,8 @@ class ExampleService(
         val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
         val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return callback(null)
         runWriteAction {
-            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {};")
+            val file = PsiFileFactory.getInstance(project).createFileFromText(name, OCLanguage.getInstance(), "class ${clazz.name} {void liveLoop() {}};")
+            CodeStyleManager.getInstance(project).reformat(file)
             callback(dir.add(file).containingFile.virtualFile)
         }
     }

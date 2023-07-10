@@ -67,10 +67,8 @@ object ReplacementClassCreator {
                     val lastNamespace = file.childrenOfType<OCCppNamespace>().lastOrNull()
                     file.addAfter(namespace, lastNamespace ?: lastStruct)
 
-                    invokeLater {
-                        val newActualStruct = file.structs.find { it.name == newStruct.name } ?: return@invokeLater
-                        callback(newActualStruct)
-                    }
+                    val newActualStruct = file.structs.find { it.name == newStruct.name } ?: return@executeCommand
+                    callback(newActualStruct)
                 }
             }
         }

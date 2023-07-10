@@ -5,6 +5,7 @@ package com.elp.editor
 import com.elp.util.document
 import com.elp.instrumentalization.*
 import com.elp.services.exampleService
+import com.elp.services.isExample
 import com.elp.util.navigable
 import com.elp.util.struct
 import com.intellij.codeInsight.hints.*
@@ -45,6 +46,7 @@ class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
             editor: Editor,
             sink: InlayHintsSink
         ): Boolean {
+            if (element.containingFile.isExample) return false
             if (example == null || element !is PsiFile) return false
             val struct = element.struct ?: return false
             val modifications = example.modifications.filter { it.originalStruct.name == struct.name }

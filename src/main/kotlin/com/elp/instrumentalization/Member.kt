@@ -34,7 +34,7 @@ sealed class Member(
 
         override fun hashCode() = super.hashCode() * 31 + parameters.hashCode()
 
-        override fun toString() = "$staticStr$name$parameterString)"
+        override fun toString() = "$staticStr$name$parameterString"
     }
 
     class Field(
@@ -80,5 +80,5 @@ val OCStruct.allMembers get() = memberFunctions + memberFields
 fun OCFunctionDeclaration.asMember() = Member.Function(this)
 fun OCDeclaration.asMember() = Member.Field(this)
 
-val OCStruct.loop get() = memberFunctions.find { it.name == "loop" && it.parameters.isEmpty() && !it.isStatic }
+val OCStruct.loop get() = memberFunctions.find { it.name == "liveLoop" && it.parameters.isEmpty() && !it.isStatic }
 val OCStruct.setup get() = memberFunctions.find { it.name == "setup" && it.parameters.isEmpty() && !it.isStatic }

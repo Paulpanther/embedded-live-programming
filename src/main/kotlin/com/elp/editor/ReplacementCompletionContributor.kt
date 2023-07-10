@@ -58,7 +58,7 @@ class ReplacementCompletionContributor: CompletionContributor() {
 
         val hasLoop = originalClass.loop != null || example.ownMainStruct.loop != null
         val hasSetup = originalClass.setup != null || example.ownMainStruct.setup != null
-        if (!hasLoop) result.addElement(createFunctionLookup("loop", "void", listOf()))
+        if (!hasLoop) result.addElement(createFunctionLookup("liveLoop", "void", listOf()))
         if (!hasSetup) result.addElement(createFunctionLookup("setup", "void", listOf()))
     }
 
