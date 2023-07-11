@@ -19,7 +19,11 @@ class Frame(
         if (mock) {
             mockExecute()
         } else {
-            execute(path)
+            try {
+                execute(path)
+            } catch(_: Exception) {
+                error("Error in Cpp Runtime")
+            }
         }
     }
 

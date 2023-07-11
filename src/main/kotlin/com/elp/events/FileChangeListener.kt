@@ -19,11 +19,6 @@ class FileChangeListener : FileDocumentManagerListener {
         val project = openProject ?: return
         val file = document.getPsiFile(project) ?: return
 
-        if (file.childrenOfType<PsiErrorElement>().isNotEmpty()) {
-            project.error("Please fix errors before saving")
-            return
-        }
-
         InstrumentalizationManager.run(project)
 
 //        probeService.showLoading(file)
