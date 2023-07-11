@@ -15,14 +15,12 @@ import com.intellij.psi.PsiFile
 
 @Service
 class ProbeService: Disposable {
-    var requestedUserProbes = mutableMapOf<VirtualFile, MutableList<TextRange>>()
-    var foundUserProbes = mutableMapOf<VirtualFile, MutableList<ProbePresentation>>()
-    var displayedUserProbes = mutableMapOf<VirtualFile, MutableList<SparklineProbeWrapper>>()
-
-    var probes = mutableMapOf<String, List<ProbePresentation>>()
+    var requestedUserProbes = mutableMapOf<String, MutableList<TextRange>>()
+    var userProbes = mutableMapOf<String, MutableList<ProbePresentation>>()
+    var probes = mutableMapOf<String, MutableList<ProbePresentation>>()
 
     val probeUpdater = ProbeUpdateController().start()
-    val runner = Runner(mock = true).start()
+    val runner = Runner(mock = false).start()
     private var loading: LoadingNotification? = null
 
     init {

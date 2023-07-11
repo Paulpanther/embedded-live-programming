@@ -14,16 +14,18 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.project.rootManager
+import com.intellij.openapi.util.Ref
 import com.intellij.openapi.util.TextRange
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.*
 import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.elementsAroundOffsetUp
 import com.intellij.psi.util.parentOfType
+import com.intellij.psi.util.parentOfTypes
 import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCStruct
 import javax.swing.Icon
+import kotlin.reflect.KClass
 
 val openProject get() = ProjectManager.getInstance().openProjects.firstOrNull()
 
@@ -75,21 +77,19 @@ val VirtualFile.document get() = FileDocumentManager.getInstance().getDocument(t
 val PsiFile.struct get() = childOfType<OCStruct>()
 val PsiFile.structs get() = childrenOfType<OCStruct>()
 
-fun PsiFile.clone() = PsiFileFactory
-    .getInstance(project)
-    .createFileFromText(name, OCLanguage.getInstance(), text)
-
 val PsiElement.navigable get() = OpenFileDescriptor(project, containingFile.virtualFile, navigationElement.startOffset)
 
 inline fun <reified T: PsiElement> PsiElement.childrenOfType(): List<T> = PsiTreeUtil.findChildrenOfType(this, T::class.java).toList()
 inline fun <reified T: PsiElement> PsiElement.childOfType(): T? = PsiTreeUtil.findChildOfType(this, T::class.java)
 
-inline fun <reified T: PsiElement> PsiElement.childAtRangeOfType(range: TextRange): T? {
+inline fun <reified T: PsiElement> PsiElement.childAtRangeOfType(range: TextRange) = childAtRangeOfType(range, T::class)
+
+fun <T: PsiElement> PsiElement.childAtRangeOfType(range: TextRange, type: KClass<T>): T? {
     var element = findElementAt(range.startOffset) ?: return null
-    while (element.textRange != range || element !is T) {
+    while (element.textRange != range || !type.isInstance(element)) {
         if (element.textRange !in range) return null
-        element = element.parentOfType<T>() ?: return null
+        element = element.parentOfTypes(type) ?: return null
     }
 
-    return element
+    return element as? T
 }

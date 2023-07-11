@@ -1,14 +1,13 @@
 package com.elp.instrumentalization
 
+import com.elp.actions.isValidProbeType
 import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
-import com.elp.util.childAtRangeOfType
-import com.elp.util.childrenOfType
+import com.elp.util.*
+import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiFile
-import com.jetbrains.cidr.lang.psi.OCAssignmentExpression
-import com.jetbrains.cidr.lang.psi.OCDeclarationStatement
+import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.psi.OCExpression
-import com.jetbrains.cidr.lang.psi.OCReturnStatement
 import com.jetbrains.cidr.lang.util.OCElementFactory
 
 /**
@@ -17,57 +16,84 @@ import com.jetbrains.cidr.lang.util.OCElementFactory
  * Rewrite file with probes
  **/
 object FileProbeInstrumentalization {
-    fun run(files: List<PsiFile>) {
-        val expressionPerFile = files.associateWith { findProbes(it) }
-        val userExpressionsPerFile = files.associateWith { findUserProbes(it) }
+    fun run(clonedFiles: List<ClonedFile>) {
+        probeService.probes.clear()
+        val code = Ref(0)
+        val probesPerFile = findAndRegisterProbes(clonedFiles, code)
+        val userProbesPerFile = findAndRegisterUserProbes(clonedFiles, code)
 
-        var code = 0
-        val probesPerFile = expressionPerFile
-            .mapValues { (_, expressions) -> expressions.map { ProbeLocation(it, code++) } }
-        val userProbesPerFile = userExpressionsPerFile
-            .mapValues { (_, expressions) -> expressions.map { ProbeLocation(it, code++, true) }.toMutableList() }
-
-        for ((file, probes) in probesPerFile) {
+        for (file in clonedFiles) {
+            val probes = (probesPerFile[file] ?: listOf()) + (userProbesPerFile[file] ?: listOf())
             val presentations = probes.map { ProbePresentation(it.code, it.element.textRange, it.userProbe) }
-            probeService.probes[file.name] = presentations.toMutableList()
+
+            // Append previous user probes that were collected in past
+            probeService.probes.appendValue(file.name, probeService.userProbes[file.name] ?: listOf())
+
+            // Store user probes found now
+            probeService.userProbes.appendValue(file.name, presentations.filter { it.isUserProbe })
+
+            // Add all new probes
+            probeService.probes.appendValue(file.name, presentations)
         }
-        probeService.foundUserProbes = userExpressionsPerFile
         probeService.requestedUserProbes.clear()
 
-        for ((file, probes) in probesPerFile + userProbesPerFile) {
-            instrumentFile(file, probes)
+        for (file in clonedFiles) {
+            val probes = (probesPerFile[file] ?: listOf()) + (userProbesPerFile[file] ?: listOf())
+            instrumentFile(probes)
         }
     }
 
-    private fun instrumentFile(file: PsiFile, probes: List<ProbeLocation>): PsiFile {
+    private fun findAndRegisterProbes(files: List<ClonedFile>, code: Ref<Int>): Map<ClonedFile, List<ProbeLocation>> {
+        val expressionPerFile = files.associateWith { findProbes(it) }
+        val probesPerFile = expressionPerFile
+            .mapValues { (_, expressions) -> expressions.map {
+                ProbeLocation(it, code.getAndPostInc()) } }
+        return probesPerFile
+    }
+
+    private fun findAndRegisterUserProbes(files: List<PsiFile>, code: Ref<Int>): Map<PsiFile, List<ProbeLocation>> {
+        val expressionPerFile = files.associateWith { findUserProbes(it) }
+        val probesPerFile = expressionPerFile
+            .mapValues { (_, expressions) -> expressions.map {
+                ProbeLocation(it, code.getAndPostInc(), true) } }
+        return probesPerFile
+    }
+
+    private fun instrumentFile(probes: List<ProbeLocation>) {
         for (probe in probes) {
             // int a = 2 + 3 -> int a = add_probe(x, 2 + 3)
             val expr = OCElementFactory
                 .callExpression("add_probe", listOf(probe.code.toString(), probe.element.text), probe.element)
             probe.element.replace(expr)
         }
-        return file
     }
 
-    private fun findProbes(file: PsiFile): List<OCExpression> {
-        val declarations = file
-            .childrenOfType<OCDeclarationStatement>()
-            .mapNotNull { it.declaration.declarators.firstOrNull()?.initializer }
+    private fun findProbes(file: ClonedFile): List<OCExpression> {
+        val doc = file.document ?: return listOf()
+        return file
+            .childrenOfType<OCExpression>()
+            .filter { (file.originalElement(it) as? OCExpression)?.isValidProbeType == true }
+            .groupBy { doc.getLineNumber(it.startOffset) }
+            .mapNotNull { (_, expressions) -> expressions.maxByOrNull { it.textRange.length } }
 
-        val assignments = file
-            .childrenOfType<OCAssignmentExpression>()
-            .mapNotNull { it.sourceExpression }
-
-        val returns = file
-            .childrenOfType<OCReturnStatement>()
-            .mapNotNull { it.expression }
-
-        return declarations + assignments + returns
+//        val declarations = file
+//            .childrenOfType<OCDeclarationStatement>()
+//            .mapNotNull { it.declaration.declarators.firstOrNull()?.initializer }
+//
+//        val assignments = file
+//            .childrenOfType<OCAssignmentExpression>()
+//            .mapNotNull { it.sourceExpression }
+//
+//        val returns = file
+//            .childrenOfType<OCReturnStatement>()
+//            .mapNotNull { it.expression }
+//
+//        return declarations + assignments + returns
     }
 
     private fun findUserProbes(file: PsiFile): List<OCExpression> {
-        val ranges = probeService.requestedUserProbes[file.virtualFile] ?: return listOf()
-        return ranges.mapNotNull { file.childAtRangeOfType<OCExpression>(it) }
+        val ranges = probeService.requestedUserProbes[file.name] ?: return listOf()
+        return ranges.mapNotNull { file.childAtRangeOfType(it) }
     }
 }
 

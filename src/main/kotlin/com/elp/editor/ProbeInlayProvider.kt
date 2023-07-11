@@ -39,22 +39,15 @@ class ProbeInlayProvider: InlayHintsProvider<NoSettings> {
                 return true
             }
 
-            private fun matchUserProbe(element: PsiElement) {
-                val userProbes = probeService.probes[file.name]?.filter { it.isUserProbe } ?: return
-                val probe = userProbes.find { it.range == element.textRange }
-            }
-
             private fun matchExpression(element: PsiElement) {
                 when (element) {
-                    is OCDeclarationStatement -> createInlay(element.declaration.declarators.firstOrNull()?.initializer ?: return)
-                    is OCAssignmentExpression -> createInlay(element.sourceExpression ?: return)
-                    is OCReturnStatement -> createInlay(element.expression ?: return)
+                    is OCExpression -> createInlay(element)
                 }
             }
 
             private fun createInlay(element: OCExpression) {
-                val probe = probeService.probes[file.name]?.find { it.range == element.textRange } ?: return
-                sink.addInlineElement(element.startOffset, false, probe.createPresentation(editor as EditorImpl), true)
+                val probe = probeService.probes[file.name]?.find { it.element == element || it.range == element.textRange && it.element == null } ?: return
+                sink.addInlineElement(element.startOffset, false, probe.createPresentation(editor as EditorImpl, element), true)
             }
 
         }

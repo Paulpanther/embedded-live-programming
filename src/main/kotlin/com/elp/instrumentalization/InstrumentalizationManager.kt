@@ -4,7 +4,7 @@ import com.elp.services.ExampleService
 import com.elp.services.classService
 import com.elp.services.exampleService
 import com.elp.services.probeService
-import com.elp.util.clone
+import com.elp.util.childAtRangeOfType
 import com.elp.util.error
 import com.elp.util.struct
 import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
@@ -13,6 +13,7 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.project.Project
+import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.jetbrains.cidr.lang.OCLanguage
@@ -24,13 +25,14 @@ object InstrumentalizationManager {
     }
 
     fun run(project: Project) {
-        val files = project.classService.classes.map { it.file.clone() }
-        val example = project.exampleService.activeExample ?: return
-        val exampleFile = example.ownFile.clone()
-
         invokeLater {
             runWriteAction {
                 executeCommand {
+                    val original = project.classService.classes.map { it.file }
+                    val files = original.map { it.clone() }
+                    val example = project.exampleService.activeExample ?: return@executeCommand
+                    val exampleFile = example.ownFile.clone()
+
                     FileProbeInstrumentalization.run(files + exampleFile)
                     FileExampleInstrumentalization.run(example, files, exampleFile)
 
@@ -86,3 +88,13 @@ object InstrumentalizationManager {
         ).apply { this.name = "________main.cpp" }
     }
 }
+
+class ClonedFile(val original: PsiFile, private val clone: PsiFile): PsiFile by clone {
+    fun originalElement(element: PsiElement): PsiElement? {
+        return original.childAtRangeOfType(element.textRange, element::class)
+    }
+}
+
+fun PsiFile.clone() = ClonedFile(this, PsiFileFactory
+    .getInstance(project)
+    .createFileFromText(name, OCLanguage.getInstance(), text))
