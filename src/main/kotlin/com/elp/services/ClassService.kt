@@ -77,7 +77,7 @@ class ClassService(
 
     fun findClass(virtualFile: VirtualFile) = classes.find { it.virtualFile == virtualFile }
 
-    private fun findClasses() = files.map { Clazz(project, it) }
+    private fun findClasses() = files.mapNotNull { try { Clazz(project, it) } catch(e: Exception) { null } }
 
     override fun dispose() {}
 }
