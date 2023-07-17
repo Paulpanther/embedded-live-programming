@@ -4,7 +4,9 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionPlaces
 import com.intellij.openapi.actionSystem.ActionToolbar
+import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.impl.ActionButton
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -42,23 +44,24 @@ fun Project.getAllOpenFiles(): List<PsiFile>? {
 
 val VirtualFile.recursiveChildren get(): List<VirtualFile> = children.flatMap { it.recursiveChildren + it }
 
-fun dumbActionButton(
-    text: String,
-    description: String,
-    icon: Icon,
-    callback: (event: AnActionEvent) -> Unit
-): ActionButton {
-    val action = object : DumbAwareAction(text, description, icon) {
-        override fun actionPerformed(e: AnActionEvent) {
-            callback(e)
+fun actionGroup(builder: ActionGroupBuilder.() -> Unit): DefaultActionGroup {
+    val b = ActionGroupBuilder()
+    builder(b)
+    return b.create()
+}
+
+class ActionGroupBuilder {
+    private val actions = mutableListOf<AnAction>()
+
+    fun action(text: String, description: String, icon: Icon, onActionPerformed: (e: AnActionEvent) -> Unit) {
+        actions += object: AnAction(text, description, icon) {
+            override fun actionPerformed(e: AnActionEvent) {
+                onActionPerformed(e)
+            }
         }
     }
-    return ActionButton(
-        action,
-        action.templatePresentation.clone(),
-        ActionPlaces.UNKNOWN,
-        ActionToolbar.DEFAULT_MINIMUM_BUTTON_SIZE
-    )
+
+    fun create() = DefaultActionGroup(actions.toList())
 }
 
 fun Project.error(content: String) {

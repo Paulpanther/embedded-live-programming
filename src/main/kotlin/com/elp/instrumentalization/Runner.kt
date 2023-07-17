@@ -2,9 +2,12 @@ package com.elp.instrumentalization
 
 import com.elp.model.Probe
 import com.elp.services.probeService
+import com.elp.util.error
+import com.elp.util.logTime
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import java.io.File
+import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.scheduleAtFixedRate
@@ -14,12 +17,14 @@ class Frame(
     private val mock: Boolean = false
 ): Thread() {
     private var running = true
+    private var firstResult = true
 
     override fun run() {
         if (mock) {
             mockExecute()
         } else {
             try {
+                logTime("Execute")
                 execute(path)
             } catch(_: Exception) {
                 error("Error in Cpp Runtime")
@@ -37,6 +42,10 @@ class Frame(
     @Suppress("unused")
     private fun onIteration(probes: Array<Probe>): Boolean {
 //        probeService.stopLoading()
+        if (firstResult) {
+            firstResult = false
+            logTime("First result")
+        }
 
         val realProbes = probeService.probes.values.flatten()
         val probesByCode = probes.groupBy { it.code }
@@ -93,13 +102,24 @@ class Runner(
             File("$userCodePath/src/user/${file.name}").writeText(file.text)
         }
 
+        logTime("After writing files")
+
         val lib = "code${i++}"
         val cmd = "$userCodePath/build.sh $lib"
         Runtime
             .getRuntime()
             .exec(cmd)
             .waitFor(20, TimeUnit.SECONDS)
+        logTime("After build")
 
+        val libFile = File("$userCodePath/build/lib$lib.so")
+        if (!libFile.exists()) {
+            val project = files.firstOrNull()?.project
+            project?.error("Could not build project. Please check for errors.")
+            return
+        }
+
+        logTime("Starting frame")
         frame?.stopRunning()
         frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
     }

@@ -1,5 +1,6 @@
 package com.elp.instrumentalization
 
+import com.elp.model.Example
 import com.elp.services.ExampleService
 import com.elp.services.classService
 import com.elp.services.exampleService
@@ -11,16 +12,19 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.parentOfType
+import com.intellij.util.application
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCReturnStatement
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.types.OCVoidType
+import java.sql.Timestamp
 
 object InstrumentalizationManager {
     fun registerOnActiveExampleChange(exampleService: ExampleService) {
@@ -28,28 +32,42 @@ object InstrumentalizationManager {
     }
 
     fun run(project: Project) {
+        val original = project.classService.classes.map { it.file }
+        val example = project.exampleService.activeExample ?: return
+        val hash = CurrentFileState(original, example).hashCode()
+        if (probeService.lastExecutedHash == hash) return
+        probeService.lastExecutedHash = hash
+
         invokeLater {
             runWriteAction {
                 executeCommand {
-                    val original = project.classService.classes.map { it.file }
-                    val example = project.exampleService.activeExample ?: return@executeCommand
+                    logTime("Start InstrumentalizationManager")
                     val exampleFile = example.ownFile.clone()
                     if (!checkFiles(original + exampleFile)) return@executeCommand
 
                     val files = original.map { it.clone() }
 
+                    logTime("Start Probe Run")
                     FileProbeInstrumentalization.run(files + exampleFile)
+                    logTime("Start Example Run")
                     FileExampleInstrumentalization.run(example, files, exampleFile)
 
                     val mainStruct = files
                         .mapNotNull { it.struct }
                         .find { it.name == example.ownMainStruct.name } ?: return@executeCommand
-                    probeService.runner.executeFiles(files + createRunnerFile(project, mainStruct))
+                    val runner = createRunnerFile(project, mainStruct)
 
-                    @Suppress("UnstableApiUsage")
-                    InlayHintsPassFactory.forceHintsUpdateOnNextPass()
-                    for (file in example.referencedFiles) {
-                        DaemonCodeAnalyzer.getInstance(project).restart(file)
+                    // Write Action is finished
+                    invokeLater {
+                        probeService.runner.executeFiles(files + runner)
+
+                        logTime("Update Presentation")
+                        @Suppress("UnstableApiUsage")
+                        InlayHintsPassFactory.forceHintsUpdateOnNextPass()
+                        for (file in example.referencedFiles) {
+                            DaemonCodeAnalyzer.getInstance(project).restart(file)
+                        }
+                        logTime("End")
                     }
                 }
             }
@@ -123,3 +141,9 @@ class ClonedFile(val original: PsiFile, private val clone: PsiFile): PsiFile by 
 fun PsiFile.clone() = ClonedFile(this, PsiFileFactory
     .getInstance(project)
     .createFileFromText(name, OCLanguage.getInstance(), text))
+
+data class CurrentFileState(
+    val files: List<Pair<String, String>>,
+) {
+    constructor(files: List<PsiFile>, example: Example): this((files + example.ownFile).map { it.virtualFile.path to it.text })
+}

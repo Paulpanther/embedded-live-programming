@@ -23,6 +23,8 @@ class ProbeService: Disposable {
     val runner = Runner(mock = false).start()
     private var loading: LoadingNotification? = null
 
+    var lastExecutedHash = 0
+
     init {
         Disposer.register(this, runner)
         Disposer.register(this, probeUpdater)
