@@ -23,7 +23,11 @@ class ProbePresentation(
     fun createPresentation(editor: EditorImpl, element: OCExpression): InlayPresentation {
         this.element = element
         this.editor = editor
-        return SparklineProbeWrapper(editor).also { presentation = it }
+        return SparklineProbeWrapper(editor).also {
+            presentation = it
+            val probe = probe ?: return@also
+            it.update(probe)
+        }
     }
 
     fun update(probe: Probe) {

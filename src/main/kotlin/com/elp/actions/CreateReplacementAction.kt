@@ -12,6 +12,7 @@ import com.elp.util.childOfType
 import com.elp.util.error
 import com.elp.util.struct
 import com.intellij.codeInsight.intention.PsiElementBaseIntentionAction
+import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.editor.Editor
@@ -52,18 +53,19 @@ object ReplacementCreator {
     fun create(example: Example, struct: OCStruct, member: Member): Boolean {
         val exampleStruct = example.ownStructs.find { it.name == struct.name }
         if (exampleStruct == null) {
-            ReplacementClassCreator.create(example, struct) { /*createReplacement(member, example, it)*/ }
+            ReplacementClassCreator.create(example, struct) { invokeLater { createReplacement(member, example, it.name!!) } }
         } else {
             val exampleMembers = exampleStruct.memberFields + exampleStruct.memberFunctions
             if (exampleMembers.any { it equalsIgnoreFile member }) return false
-            createReplacement(member, example, exampleStruct)
+            createReplacement(member, example, exampleStruct.name!!)
         }
         return true
     }
 
-    private fun createReplacement(member: Member, example: Example, struct: OCStruct) {
+    private fun createReplacement(member: Member, example: Example, structName: String) {
         runWriteAction {
             executeCommand {
+                val struct = example.ownStructs.find { it.name == structName } ?: return@executeCommand
                 val element = when (member) {
                     is Member.Function -> OCElementFactory.codeFragment(
                         "${member.type} ${member.name}${member.parameterString} {}",

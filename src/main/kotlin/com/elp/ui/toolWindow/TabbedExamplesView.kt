@@ -5,9 +5,12 @@ import com.elp.model.Example
 import com.elp.services.Clazz
 import com.elp.services.classService
 import com.elp.services.exampleService
+import com.elp.services.probeService
 import com.elp.util.NamingHelper
 import com.elp.util.actionGroup
 import com.elp.util.panel
+import com.intellij.codeInsight.daemon.DaemonCodeAnalyzer
+import com.intellij.codeInsight.hints.InlayHintsPassFactory
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.actionSystem.ActionManager
@@ -50,6 +53,24 @@ class TabbedExamplesView(
             action("Rename Example", "Rename the current example", AllIcons.Actions.Edit) {
                 val example = project.exampleService.activeExample ?: return@action
                 showRenameExampleDialog(example)
+            }
+            action("Stop Execution", "Stop the execution of the current example", AllIcons.Actions.Suspend) {
+                val example = project.exampleService.activeExample ?: return@action
+                probeService.runner.stop()
+                @Suppress("UnstableApiUsage")
+                InlayHintsPassFactory.forceHintsUpdateOnNextPass()
+                for (file in example.referencedFiles) {
+                    DaemonCodeAnalyzer.getInstance(project).restart(file)
+                }
+            }
+            action("Restart Execution", "Restart the execution of the current example", AllIcons.Actions.Restart) {
+                val example = project.exampleService.activeExample ?: return@action
+                probeService.runner.restart()
+                @Suppress("UnstableApiUsage")
+                InlayHintsPassFactory.forceHintsUpdateOnNextPass()
+                for (file in example.referencedFiles) {
+                    DaemonCodeAnalyzer.getInstance(project).restart(file)
+                }
             }
         }
 

@@ -18,7 +18,7 @@ object FileExampleInstrumentalization {
         for (toRemove in modifications.filterReplacements()) {
             toRemove.original!!.element.delete()
         }
-        val structs = files.mapNotNull { it.struct }
+        val structs = files.flatMap { it.structs }
         for (struct in structs) {
             var anchor: PsiElement? = struct.members.lastOrNull()
             for (modification in modifications.filter { it.originalStruct == struct }) {
@@ -28,14 +28,19 @@ object FileExampleInstrumentalization {
     }
 
     private fun collectModifications(file: PsiFile, exampleFile: PsiFile): List<Modification> {
-        val parentStruct = file.struct ?: return listOf()
-        val replacedStruct = exampleFile.structs.find { it.name == parentStruct.name } ?: return listOf()
+        val parentStructs = file.structs
+        val modifications = mutableListOf<Modification>()
 
-        return replacedStruct.allMembers.map { replacedMember ->
-            val clazzMember =
-                parentStruct.allMembers.find { parentMember -> replacedMember equalsIgnoreFile parentMember }
-            Modification(parentStruct, replacedMember, clazzMember)
+        for (parentStruct in parentStructs) {
+            val replacedStruct = exampleFile.structs.find { it.name == parentStruct.name } ?: continue
+
+            modifications += replacedStruct.allMembers.map { replacedMember ->
+                val clazzMember =
+                    parentStruct.allMembers.find { parentMember -> replacedMember equalsIgnoreFile parentMember }
+                Modification(parentStruct, replacedMember, clazzMember)
+            }
         }
+        return modifications
     }
 }
 

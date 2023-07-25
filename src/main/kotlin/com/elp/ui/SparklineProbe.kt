@@ -53,6 +53,7 @@ class SparklineProbeWrapper(
         val inlay = inlay
         if (inlay == null) {
             this.inlay = SparklineProbe.createFrom(editor, probe)
+            this.inlay?.updateOrRecreate(probe)
         } else {
             inlay.updateOrRecreate(probe)
         }

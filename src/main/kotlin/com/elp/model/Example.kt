@@ -53,10 +53,13 @@ class Example(
 
     fun commitDocument(callback: () -> Unit) {
         val manager = PsiDocumentManager.getInstance(project)
-        if (manager.isCommitted(ownDocument)) callback()
-        runWriteAction {
-            manager.commitDocument(ownDocument)
+        if (manager.isCommitted(ownDocument)) {
             callback()
+        } else {
+            runWriteAction {
+                manager.commitDocument(ownDocument)
+                callback()
+            }
         }
     }
 

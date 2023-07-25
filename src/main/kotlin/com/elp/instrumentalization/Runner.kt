@@ -34,7 +34,9 @@ class Frame(
 
     fun stopRunning() {
         running = false
+        logTime("Start Join")
         join()
+        logTime("End Join")
     }
 
     private external fun execute(path: String)
@@ -81,6 +83,7 @@ class Runner(
     private val runnerPath = "/home/paul/dev/uni/embedded-live-programming-runner"
     private val userCodePath = "/home/paul/dev/uni/embedded-live-programming-user-code"
     private var frame: Frame? = null
+    private var lastLib: String? = null
 
     fun start(): Runner {
         if (!mock) {
@@ -105,6 +108,7 @@ class Runner(
         logTime("After writing files")
 
         val lib = "code${i++}"
+        lastLib = lib
         val cmd = "$userCodePath/build.sh $lib"
         Runtime
             .getRuntime()
@@ -120,6 +124,16 @@ class Runner(
         }
 
         logTime("Starting frame")
+        frame?.stopRunning()
+        frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
+    }
+
+    fun stop() {
+        frame?.stopRunning();
+    }
+
+    fun restart() {
+        val lib = lastLib ?: return
         frame?.stopRunning()
         frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
     }
