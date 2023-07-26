@@ -1,4 +1,4 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.actions.isValidProbeType
 import com.elp.services.probeService
@@ -15,7 +15,7 @@ import com.jetbrains.cidr.lang.util.OCElementFactory
  * Store unfinished ProbePresentations in Service
  * Rewrite file with probes
  **/
-object FileProbeInstrumentalization {
+object FileProbeInjection {
     fun run(clonedFiles: List<ClonedFile>) {
         probeService.probes.clear()
         val code = Ref(0)

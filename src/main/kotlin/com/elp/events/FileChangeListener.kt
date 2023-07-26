@@ -1,25 +1,22 @@
 package com.elp.events
 
-import com.elp.instrumentalization.ImportManager
-import com.elp.instrumentalization.InstrumentalizationManager
+import com.elp.execution.ImportManager
+import com.elp.execution.CodeExecutionManager
 import com.elp.services.exampleService
-import com.elp.services.probeService
-import com.elp.util.childrenOfType
-import com.elp.util.error
 import com.elp.util.getPsiFile
 import com.elp.util.openProject
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
-import com.intellij.openapi.fileEditor.FileEditorManager
-import com.intellij.psi.PsiErrorElement
-import com.intellij.ui.EditorNotificationPanel
 
+/**
+ * Runs the CodeExecutionManager on safe
+ */
 class FileChangeListener : FileDocumentManagerListener {
     override fun beforeDocumentSaving(document: Document) {
         val project = openProject ?: return
         val file = document.getPsiFile(project) ?: return
 
-        InstrumentalizationManager.run(project)
+        CodeExecutionManager.run(project)
 
 //        probeService.showLoading(file)
 

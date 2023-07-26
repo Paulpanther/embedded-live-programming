@@ -1,9 +1,9 @@
 package com.elp.actions
 
-import com.elp.instrumentalization.Member
-import com.elp.instrumentalization.asMember
-import com.elp.instrumentalization.memberFields
-import com.elp.instrumentalization.memberFunctions
+import com.elp.execution.Member
+import com.elp.execution.asMember
+import com.elp.execution.memberFields
+import com.elp.execution.memberFunctions
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.exampleService

@@ -3,7 +3,7 @@
 package com.elp.editor
 
 import com.elp.util.document
-import com.elp.instrumentalization.*
+import com.elp.execution.*
 import com.elp.services.exampleService
 import com.elp.services.isExample
 import com.elp.util.navigable
@@ -24,6 +24,9 @@ import com.intellij.ui.dsl.builder.panel
 import com.jetbrains.cidr.lang.psi.OCStruct
 import javax.swing.JComponent
 
+/**
+ * shows inlays for replaced fields and methods in class
+ */
 class ReplacementInlayProvider : InlayHintsProvider<NoSettings> {
     override val key = SettingsKey<NoSettings>("replacement")
     override val name = "Replacement"

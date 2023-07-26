@@ -1,6 +1,6 @@
 package com.elp.model
 
-import com.elp.instrumentalization.Modification
+import com.elp.execution.Modification
 import com.elp.services.Clazz
 import com.elp.services.classService
 import com.elp.services.exampleKey

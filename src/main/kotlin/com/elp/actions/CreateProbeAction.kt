@@ -1,6 +1,6 @@
 package com.elp.actions
 
-import com.elp.instrumentalization.InstrumentalizationManager
+import com.elp.execution.CodeExecutionManager
 import com.elp.services.probeService
 import com.elp.util.appendValue
 import com.elp.util.error
@@ -9,17 +9,15 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
-import com.jetbrains.cidr.cpp.assertions.assumeNotNull
 import com.jetbrains.cidr.lang.psi.OCExpression
-import com.jetbrains.cidr.lang.psi.OCExpressionStatement
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
-import com.jetbrains.cidr.lang.types.OCIntType
-import com.jetbrains.cidr.lang.types.OCType
-import com.jetbrains.cidr.lang.types.OCVoidType
-import com.jetbrains.rd.util.getOrCreate
 
 private val supportedTypes = listOf("int", "float", "double", "bool", "std::string")
 
+/**
+ * takes the current expression and stores it as a possible probe location.
+ * Then the CodeRewritingManager is executed and will try to commit those probes.
+ */
 class CreateProbeAction: PsiElementBaseIntentionAction() {
     override fun getFamilyName() = "ExampleActions"
     override fun getText() = "Create Probe"
@@ -36,7 +34,7 @@ class CreateProbeAction: PsiElementBaseIntentionAction() {
             return
         }
         probeService.requestedUserProbes.appendValue(element.containingFile.name, expr.textRange)
-        InstrumentalizationManager.run(project)
+        CodeExecutionManager.run(project)
     }
 }
 

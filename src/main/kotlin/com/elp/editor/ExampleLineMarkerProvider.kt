@@ -11,6 +11,9 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.util.elementType
 import com.jetbrains.cidr.lang.parser.OCKeywordElementType
 
+/**
+ * Shows "create example" line marker
+ */
 class ExampleLineMarkerProvider: LineMarkerProvider {
     override fun getLineMarkerInfo(element: PsiElement): LineMarkerInfo<*>? {
         if (!(element.elementType is OCKeywordElementType && (element.text == "class" || element.text == "struct"))) return null

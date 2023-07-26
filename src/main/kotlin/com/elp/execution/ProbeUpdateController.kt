@@ -1,4 +1,4 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.services.probeService
 import com.elp.ui.ProbePresentation
@@ -7,6 +7,10 @@ import com.intellij.openapi.application.invokeLater
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
+/**
+ * Probe updates come from a separate thread and will slow the IDE if applied directly,
+ * so this class buffers changes and applies them slower
+ */
 class ProbeUpdateController: Disposable {
     private val rateMS = 100L
     private var task: TimerTask? = null

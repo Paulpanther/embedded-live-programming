@@ -1,11 +1,9 @@
 package com.elp.services
 
-import com.elp.actions.showCreateExampleDialog
-import com.elp.instrumentalization.ImportManager
-import com.elp.instrumentalization.InstrumentalizationManager
+import com.elp.execution.ImportManager
+import com.elp.execution.CodeExecutionManager
 import com.elp.model.Example
 import com.elp.util.document
-import com.elp.util.ExampleNotification
 import com.elp.util.NamingHelper
 import com.elp.util.UpdateListeners
 import com.intellij.openapi.application.runWriteAction
@@ -22,7 +20,6 @@ import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.jetbrains.cidr.lang.OCLanguage
-import com.jetbrains.cidr.ui.createMaybeInvalidItem
 import com.jetbrains.rd.util.getOrCreate
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
@@ -47,7 +44,7 @@ class ExampleService(
         }
 
     init {
-        InstrumentalizationManager.registerOnActiveExampleChange(this)
+        CodeExecutionManager.registerOnActiveExampleChange(this)
     }
 
     fun examplesForClass(clazz: Clazz): MutableList<Example> {

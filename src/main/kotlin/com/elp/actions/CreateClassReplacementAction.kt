@@ -15,6 +15,10 @@ import com.jetbrains.cidr.lang.psi.OCCppNamespace
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.util.OCElementFactory
 
+/**
+ * Press alt + enter on a class and choose "Replace Class".
+ * This will create a new replacement struct in the active example
+ */
 class CreateClassReplacementAction: PsiElementBaseIntentionAction() {
     override fun getFamilyName() = "ExampleActions"
     override fun getText() = "Replace Class"
@@ -40,6 +44,10 @@ class CreateClassReplacementAction: PsiElementBaseIntentionAction() {
 }
 
 object ReplacementClassCreator {
+    /**
+     * Creates a new struct with the given name in the given example.
+     * Struct is wrapped in a namespace to avoid reference errors
+     */
     fun create(example: Example, struct: OCStruct, callback: (struct: OCStruct) -> Unit) {
         val structName = struct.name ?: "undefined"
         val file = example.ownFile

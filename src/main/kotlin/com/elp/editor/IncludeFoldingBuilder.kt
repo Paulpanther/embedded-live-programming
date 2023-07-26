@@ -12,6 +12,9 @@ import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.psi.OCIncludeDirective
 
+/**
+ * folds includes
+ */
 class IncludeFoldingBuilder: FoldingBuilderEx() {
     override fun getPlaceholderText(node: ASTNode) = null
     override fun isCollapsedByDefault(node: ASTNode) = true

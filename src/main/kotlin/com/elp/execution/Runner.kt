@@ -1,4 +1,4 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.model.Probe
 import com.elp.services.probeService
@@ -7,11 +7,15 @@ import com.elp.util.logTime
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
 import java.io.File
-import java.sql.Timestamp
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.scheduleAtFixedRate
 
+/**
+ * Frame of execution. Will be restarted everytime changes happen.
+ * execute calls C++ function through JNI.
+ * onIteration is called by C++. If false is returned C++ program will terminate
+ */
 class Frame(
     private val path: String,
     private val mock: Boolean = false
@@ -76,6 +80,11 @@ class Frame(
     }
 }
 
+/**
+ * Runner for C++ backend.
+ * When files should be executed it will copy them into the user-code environment and build it.
+ * The resulting dyn-lib will be sent to the C++ runner and included there.
+ */
 class Runner(
     private val mock: Boolean = false
 ): Disposable {
@@ -116,6 +125,7 @@ class Runner(
             .waitFor(20, TimeUnit.SECONDS)
         logTime("After build")
 
+        // lib file name has to change else C++ will not load it
         val libFile = File("$userCodePath/build/lib$lib.so")
         if (!libFile.exists()) {
             val project = files.firstOrNull()?.project

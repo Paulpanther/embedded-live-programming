@@ -21,6 +21,10 @@ import com.intellij.ui.components.dialog
 import java.awt.BorderLayout
 import javax.swing.JTextField
 
+/**
+ * press alt + enter on a class to open this.
+ * Creates an example or opens the selected one for this class
+ */
 class CreateOrOpenExampleAction: IntentionAction {
     override fun startInWriteAction() = false
     override fun getFamilyName() = "ExampleActions"
@@ -34,7 +38,6 @@ class CreateOrOpenExampleAction: IntentionAction {
     }
 }
 
-/** has to be run in write action */
 fun Clazz.showCreateOrOpenExampleDialog(callback: (Example) -> Unit = {}) {
     val list = JBList(examples)
     val field = JTextField(NamingHelper.nextName("Example", examples.map { it.name } ))

@@ -12,6 +12,9 @@ import com.intellij.refactoring.suggested.endOffset
 import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.psi.OCCppNamespace
 
+/**
+ * folds replacement namespaces
+ */
 class NamespaceFoldingBuilder: FoldingBuilderEx() {
     override fun getPlaceholderText(node: ASTNode) = "Replacement"
     override fun isCollapsedByDefault(node: ASTNode) = true

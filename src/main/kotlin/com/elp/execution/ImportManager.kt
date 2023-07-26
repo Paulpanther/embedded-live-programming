@@ -1,4 +1,4 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.model.Example
 import com.elp.util.childrenOfType
@@ -6,6 +6,9 @@ import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.jetbrains.cidr.lang.psi.OCIncludeDirective
 
+/**
+ * Example files need to have same imports as original files, so this copies them
+ */
 object ImportManager {
     fun update(example: Example) {
         val parentImports = example.referencedFiles

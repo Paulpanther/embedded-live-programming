@@ -1,4 +1,4 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.model.Example
 import com.elp.services.ExampleService
@@ -12,21 +12,18 @@ import com.intellij.openapi.application.invokeLater
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiErrorElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.util.parentOfType
-import com.intellij.util.application
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCReturnStatement
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.types.OCVoidType
-import java.sql.Timestamp
 
-object InstrumentalizationManager {
+object CodeExecutionManager {
     fun registerOnActiveExampleChange(exampleService: ExampleService) {
         exampleService.onActiveExampleChanged.register { run(exampleService.project) }
     }
@@ -34,6 +31,8 @@ object InstrumentalizationManager {
     fun run(project: Project) {
         val original = project.classService.classes.map { it.file }
         val example = project.exampleService.activeExample ?: return
+
+        // store hash to not execute same codebase multiple times
         val hash = CurrentFileState(original, example).hashCode()
         if (probeService.lastExecutedHash == hash) return
         probeService.lastExecutedHash = hash
@@ -41,16 +40,18 @@ object InstrumentalizationManager {
         invokeLater {
             runWriteAction {
                 executeCommand {
-                    logTime("Start InstrumentalizationManager")
+                    logTime("Start ExecutionManager")
                     val exampleFile = example.ownFile.clone()
+
+                    // check if files contain no errors
                     if (!checkFiles(original + exampleFile)) return@executeCommand
 
                     val files = original.map { it.clone() }
 
                     logTime("Start Probe Run")
-                    FileProbeInstrumentalization.run(files + exampleFile)
+                    FileProbeInjection.run(files + exampleFile)
                     logTime("Start Example Run")
-                    FileExampleInstrumentalization.run(example, files, exampleFile)
+                    FileReplacementInjection.run(example, files, exampleFile)
 
                     val mainStruct = files
                         .mapNotNull { it.struct }

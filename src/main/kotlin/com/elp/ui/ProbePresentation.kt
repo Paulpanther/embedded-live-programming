@@ -20,6 +20,7 @@ class ProbePresentation(
     var markedForUpdate = false
     var element: OCExpression? = null
 
+    /** this will be set once inlay provider is run */
     fun createPresentation(editor: EditorImpl, element: OCExpression): InlayPresentation {
         this.element = element
         this.editor = editor

@@ -1,7 +1,7 @@
 package com.elp.editor
 
 import com.elp.actions.ReplacementClassCreator
-import com.elp.instrumentalization.*
+import com.elp.execution.*
 import com.elp.model.Example
 import com.elp.services.classService
 import com.elp.services.example
@@ -10,14 +10,16 @@ import com.intellij.codeInsight.completion.CompletionParameters
 import com.intellij.codeInsight.completion.CompletionResultSet
 import com.intellij.codeInsight.completion.CompletionType
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.psi.PsiFile
-import com.intellij.psi.util.leavesAroundOffset
 import com.intellij.psi.util.parentOfType
 import com.intellij.psi.util.parentsOfType
 import com.jetbrains.cidr.lang.psi.OCDeclaration
 import com.jetbrains.cidr.lang.psi.OCStruct
 import com.jetbrains.cidr.lang.types.OCStructType
 
+/**
+ * adds completion for replacement structs.
+ * TODO Does not fully work currently
+ */
 class ReplacementCompletionContributor: CompletionContributor() {
     override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
         if (parameters.completionType != CompletionType.BASIC) return

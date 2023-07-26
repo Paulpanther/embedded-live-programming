@@ -7,6 +7,9 @@ import com.intellij.lang.folding.FoldingDescriptor
 import com.intellij.openapi.editor.Document
 import com.intellij.psi.PsiElement
 
+/**
+ * folds class and struct keywords to only show the class name
+ */
 class ClassFoldingBuilder: FoldingBuilderEx() {
     override fun buildFoldRegions(root: PsiElement, document: Document, quick: Boolean): Array<FoldingDescriptor> {
         return root.containingFile.structs.mapNotNull {

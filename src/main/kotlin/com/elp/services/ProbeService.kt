@@ -1,21 +1,21 @@
 package com.elp.services
 
-import com.elp.instrumentalization.ProbeUpdateController
-import com.elp.instrumentalization.Runner
+import com.elp.execution.ProbeUpdateController
+import com.elp.execution.Runner
 import com.elp.ui.LoadingNotification
 import com.elp.ui.ProbePresentation
-import com.elp.ui.SparklineProbeWrapper
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
 
 @Service
 class ProbeService: Disposable {
+    // probes requested by CreateProbeAction. Will be deleted once realized
     var requestedUserProbes = mutableMapOf<String, MutableList<TextRange>>()
+    // Copy of user-probes in probes. Stored because probes array is reset each refresh
     var userProbes = mutableMapOf<String, MutableList<ProbePresentation>>()
     var probes = mutableMapOf<String, MutableList<ProbePresentation>>()
 

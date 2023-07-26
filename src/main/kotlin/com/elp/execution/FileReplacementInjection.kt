@@ -1,16 +1,20 @@
-package com.elp.instrumentalization
+package com.elp.execution
 
 import com.elp.model.Example
-import com.elp.util.struct
 import com.elp.util.structs
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.jetbrains.cidr.lang.psi.OCStruct
 
-object FileExampleInstrumentalization {
+object FileReplacementInjection {
     fun run(example: Example, files: List<PsiFile>, exampleFile: PsiFile) {
+        // finds all replacements
         val modifications = files.flatMap { collectModifications(it, exampleFile) }
+
+        // Rewrites original files to replace methods and fields
         executeModifications(files, modifications)
+
+        // Stores replacements to display them as inlays later
         example.modifications = modifications
     }
 
