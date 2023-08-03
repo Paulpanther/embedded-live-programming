@@ -22,6 +22,8 @@ class ClassService(
     private val project: Project
 ): Disposable {
     private var files = listOf<VirtualFile>()
+    var cppFiles = listOf<VirtualFile>()
+        private set
     var classes = listOf<Clazz>()
         private set
     private var hasRequestedSmartExecution = false
@@ -50,7 +52,9 @@ class ClassService(
     private val root get() = ModuleManager.getInstance(project).modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull()
 
     private fun update() {
-        files = findOpenFiles()
+        val allFiles = findOpenFiles()
+        files = allFiles.filter { it.extension == "h" }
+        cppFiles = allFiles.filter { it.extension == "cpp" }
         executeSmart {
             classes = findClasses()
         }

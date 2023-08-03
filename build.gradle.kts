@@ -6,10 +6,10 @@ fun properties(key: String) = project.findProperty(key).toString()
 plugins {
     // Java support
     id("java")
-    // Kotlin support
-    id("org.jetbrains.kotlin.jvm") version "1.8.0"
     // Gradle IntelliJ Plugin
     id("org.jetbrains.intellij") version "1.13.3"
+    // Kotlin support
+    id("org.jetbrains.kotlin.jvm") version "1.8.0"
     // Gradle Changelog Plugin
     id("org.jetbrains.changelog") version "2.0.0"
     // Gradle Qodana Plugin

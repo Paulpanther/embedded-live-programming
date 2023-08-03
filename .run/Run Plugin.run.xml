@@ -2,6 +2,12 @@
   <configuration default="false" name="Run Plugin" type="GradleRunConfiguration" factoryName="Gradle">
     <log_file alias="idea.log" path="$PROJECT_DIR$/build/idea-sandbox/system/log/idea.log" />
     <ExternalSystemSettings>
+      <option name="env">
+        <map>
+          <entry key="ELP_RUNNER_PATH" value="$PROJECT_DIR$/../embedded-live-programming-runner" />
+          <entry key="ELP_USER_CODE_PATH" value="$PROJECT_DIR$/../embedded-live-programming-user-code" />
+        </map>
+      </option>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
       <option name="externalSystemIdString" value="GRADLE" />

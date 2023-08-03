@@ -39,7 +39,7 @@ class Frame(
     fun stopRunning() {
         running = false
         logTime("Start Join")
-        join()
+        join(1000)
         logTime("End Join")
     }
 
@@ -89,8 +89,8 @@ class Runner(
     private val mock: Boolean = false
 ): Disposable {
     private var i = 0
-    private val runnerPath = "/home/paul/dev/uni/embedded-live-programming-runner"
-    private val userCodePath = "/home/paul/dev/uni/embedded-live-programming-user-code"
+    private val runnerPath = System.getenv("ELP_RUNNER_PATH") ?: error("Missing ELP_RUNNER_PATH env variable")
+    private val userCodePath = System.getenv("ELP_USER_CODE_PATH") ?: error("Missing ELP_USER_CODE_PATH env variable")
     private var frame: Frame? = null
     private var lastLib: String? = null
 
