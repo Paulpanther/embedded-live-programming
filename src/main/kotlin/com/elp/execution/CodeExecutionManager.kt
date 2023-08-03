@@ -118,11 +118,12 @@ object CodeExecutionManager {
             OCLanguage.getInstance(), """
             #include "${mainStruct.containingFile.name}"
             #include "code.h"
+            #include <memory>
             
-            $structName* $m = nullptr;
+            std::unique_ptr<$structName> $m;
             
             void setup() {
-                $m = new $structName();
+                $m = std::make_unique<$structName>();
                 $setupString
             }
             

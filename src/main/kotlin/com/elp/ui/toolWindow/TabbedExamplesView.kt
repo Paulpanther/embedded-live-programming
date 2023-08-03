@@ -122,6 +122,8 @@ class TabbedExamplesView(
     private fun showActiveExample() {
         val active = project.exampleService.activeExample ?: return
         val tab = tabs.tabs.find { it.`object` as? Example == active } ?: return
+        tabs.tabs.forEach { it.icon = AllIcons.Actions.Pause }
+        tab.icon = AllIcons.Actions.Execute
         tabs.select(tab, true)
         tabs.requestFocusInWindow()
 //        active.file.navigate(true)
@@ -131,9 +133,13 @@ class TabbedExamplesView(
         val info = TabInfo(JBScrollPane(example.editor)).apply {
             setObject(example)
             setTabName(this, example)
+            icon = AllIcons.Actions.Pause
         }
         tabs.addTab(info)
-        if (focus) tabs.select(info, true)
+        if (focus) {
+            info.icon = AllIcons.Actions.Execute
+            tabs.select(info, true)
+        }
     }
 
     private fun setTabName(info: TabInfo, example: Example) {
