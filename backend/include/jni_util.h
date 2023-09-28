@@ -5,7 +5,7 @@
  * @returns true if iteration should continue
  */
 bool send_to_plugin(JNIEnv* env, jobject obj, std::vector<Probe>* probes) {
-    jclass probeClass = env->FindClass("com/elp/model/Probe");
+    jclass probeClass = env->FindClass("com/paulmethfessel/elp/model/Probe");
     jfieldID codeField = env->GetFieldID(probeClass, "code", "I");
     jfieldID valueField = env->GetFieldID(probeClass, "value", "Ljava/lang/String;");
     jfieldID typeField = env->GetFieldID(probeClass, "type", "Ljava/lang/String;");
@@ -21,7 +21,7 @@ bool send_to_plugin(JNIEnv* env, jobject obj, std::vector<Probe>* probes) {
     }
 
     jclass runnerClass = env->GetObjectClass(obj);
-    jmethodID methodId = env->GetMethodID(runnerClass, "onIteration", "([Lcom/elp/model/Probe;)Z");
+    jmethodID methodId = env->GetMethodID(runnerClass, "onIteration", "([Lcom/paulmethfessel/elp/model/Probe;)Z");
     jboolean res = env->CallBooleanMethod(obj, methodId, jprobes);
     return res == JNI_TRUE;
 }

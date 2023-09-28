@@ -5,7 +5,7 @@
 #include <thread>
 #include "arduino.h"
 
-JNIEXPORT void JNICALL Java_com_elp_execution_Frame_execute(JNIEnv *env, jobject obj, jstring jpath) {
+JNIEXPORT void JNICALL Java_com_paulmethfessel_elp_execution_Frame_execute(JNIEnv *env, jobject obj, jstring jpath) {
     auto path = env->GetStringUTFChars(jpath, nullptr);
     // Load user code as dynamic library
     auto user_code = UserCode(path);
