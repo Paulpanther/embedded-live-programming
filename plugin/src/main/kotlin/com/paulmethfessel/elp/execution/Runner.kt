@@ -89,14 +89,17 @@ class Runner(
     private val mock: Boolean = false
 ): Disposable {
     private var i = 0
-    private val runnerPath = System.getenv("ELP_RUNNER_PATH") ?: error("Missing ELP_RUNNER_PATH env variable")
-    private val userCodePath = System.getenv("ELP_USER_CODE_PATH") ?: error("Missing ELP_USER_CODE_PATH env variable")
+    private val runner = File(System.getenv("ELP_RUNNER_PATH"))
+        .also { if (!it.exists()) error("Invalid directory for backend: ${it.absolutePath}") }
+    private val userCode = File(System.getenv("ELP_USER_CODE_PATH"))
+        .also { if (!it.exists()) error("Invalid directory for user-code: ${it.absolutePath}") }
+
     private var frame: Frame? = null
     private var lastLib: String? = null
 
     fun start(): Runner {
         if (!mock) {
-            System.load("$runnerPath/runner.so")
+            System.load(File(runner, "runner.so").absolutePath)
         }
         return this
     }
@@ -109,9 +112,9 @@ class Runner(
             return
         }
 
-        File("$userCodePath/src/user").listFiles()?.forEach { it.delete() }
+        File(userCode, "src/user").listFiles()?.forEach { it.delete() }
         for (file in files) {
-            File("$userCodePath/src/user/${file.name}").writeText(file.text)
+            File(userCode, "src/user/${file.name}").writeText(file.text)
         }
 
         logTime("After writing files")
@@ -120,12 +123,12 @@ class Runner(
         lastLib = lib
         Runtime
             .getRuntime()
-            .exec(arrayOf("$userCodePath/build.sh", lib))
+            .exec(arrayOf(File(userCode, "build.sh").absolutePath, lib))
             .waitFor(20, TimeUnit.SECONDS)
         logTime("After build")
 
         // lib file name has to change else C++ will not load it
-        val libFile = File("$userCodePath/build/lib$lib.so")
+        val libFile = File(userCode, "build/lib$lib.so")
         if (!libFile.exists()) {
             val project = files.firstOrNull()?.project
             project?.error("Could not build project. Please check for errors.")
@@ -134,7 +137,7 @@ class Runner(
 
         logTime("Starting frame")
         frame?.stopRunning()
-        frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
+        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath).also { it.start() }
     }
 
     fun stop() {
@@ -144,7 +147,7 @@ class Runner(
     fun restart() {
         val lib = lastLib ?: return
         frame?.stopRunning()
-        frame = Frame("$userCodePath/build/lib$lib.so").also { it.start() }
+        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath).also { it.start() }
     }
 
     override fun dispose() {
