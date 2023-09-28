@@ -1,1 +1,2 @@
-ELP_RUNNER_PATH=/home/paul/dev/uni/muse-embedded-live-programming/backend ELP_USER_CODE_PATH=/home/paul/dev/uni/muse-embedded-live-programming/user-code-wrapper ./gradlew runIde -Dorg.gradle.java.home=/home/paul/.jdks/corretto-11.0.11
+# Java version should be 11 or higher
+ELP_RUNNER_PATH=/path/to/muse-embedded-live-programming/backend ELP_USER_CODE_PATH=/path/to/muse-embedded-live-programming/user-code-wrapper ./gradlew runIde
