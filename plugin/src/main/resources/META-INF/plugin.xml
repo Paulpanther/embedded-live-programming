@@ -1,0 +1,59 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.paulmethfessel.embeddedliveprogramming</id>
+    <name>MμSE: Embedded Live Programming</name>
+    <vendor>paulpanther</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.cidr.lang</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <codeInsight.inlayProvider
+                language="ObjectiveC"
+                implementationClass="com.paulmethfessel.elp.editor.ReplacementInlayProvider"/>
+        <codeInsight.inlayProvider
+                language="ObjectiveC"
+                implementationClass="com.paulmethfessel.elp.editor.ProbeInlayProvider"/>
+        <fileDocumentManagerListener
+                implementation="com.paulmethfessel.elp.events.FileChangeListener"/>
+        <intentionAction>
+            <className>com.paulmethfessel.elp.actions.CreateReplacementAction</className>
+        </intentionAction>
+        <intentionAction>
+            <className>com.paulmethfessel.elp.actions.CreateOrOpenExampleAction</className>
+        </intentionAction>
+        <intentionAction>
+            <className>com.paulmethfessel.elp.actions.JumpToSourceAction</className>
+        </intentionAction>
+        <intentionAction>
+            <className>com.paulmethfessel.elp.actions.CreateClassReplacementAction</className>
+        </intentionAction>
+        <intentionAction>
+            <className>com.paulmethfessel.elp.actions.CreateProbeAction</className>
+        </intentionAction>
+        <completion.contributor
+                order="first, before clangd"
+                language="ObjectiveC"
+                implementationClass="com.paulmethfessel.elp.editor.ReplacementCompletionContributor"/>
+        <toolWindow
+                factoryClass="com.paulmethfessel.elp.ui.toolWindow.ExampleToolWindowFactory"
+                id="Examples"
+                anchor="bottom"
+                canCloseContents="true"/>
+        <notificationGroup
+                id="Embedded Live Programming Notification Group"
+                displayType="BALLOON"/>
+        <lang.foldingBuilder
+                implementationClass="com.paulmethfessel.elp.editor.ClassFoldingBuilder"
+                language="ObjectiveC"/>
+        <lang.foldingBuilder
+                implementationClass="com.paulmethfessel.elp.editor.IncludeFoldingBuilder"
+                language="ObjectiveC"/>
+        <lang.foldingBuilder
+                implementationClass="com.paulmethfessel.elp.editor.NamespaceFoldingBuilder"
+                language="ObjectiveC"/>
+        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ExampleLineMarkerProvider" />
+        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ReplacementLineMarkerProvider" />
+        <annotator language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ProbeAnnotator" />
+    </extensions>
+</idea-plugin>
