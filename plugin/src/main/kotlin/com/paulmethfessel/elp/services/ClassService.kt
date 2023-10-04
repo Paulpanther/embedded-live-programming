@@ -16,6 +16,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.paulmethfessel.elp.util.UpdateListeners
 
 @Service(Service.Level.PROJECT)
 class ClassService(
@@ -27,6 +28,7 @@ class ClassService(
     var classes = listOf<Clazz>()
         private set
     private var hasRequestedSmartExecution = false
+    val classListener = UpdateListeners()
 
     val currentClass get(): Clazz? {
         val editor = FileEditorManager.getInstance(project).selectedEditor
@@ -57,6 +59,7 @@ class ClassService(
         cppFiles = allFiles.filter { it.extension == "cpp" }
         executeSmart {
             classes = findClasses()
+            classListener.call()
         }
     }
 

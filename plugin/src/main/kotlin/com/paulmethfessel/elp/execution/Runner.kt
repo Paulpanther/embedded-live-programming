@@ -86,7 +86,7 @@ class Frame(
  * The resulting dyn-lib will be sent to the C++ runner and included there.
  */
 class Runner(
-    private val mock: Boolean = false
+    private val mock: Boolean = true
 ): Disposable {
     private var i = 0
     private val runner = File(System.getenv("ELP_RUNNER_PATH"))

@@ -1,11 +1,5 @@
 package com.paulmethfessel.elp.services
 
-import com.paulmethfessel.elp.execution.ImportManager
-import com.paulmethfessel.elp.execution.CodeExecutionManager
-import com.paulmethfessel.elp.model.Example
-import com.paulmethfessel.elp.util.document
-import com.paulmethfessel.elp.util.NamingHelper
-import com.paulmethfessel.elp.util.UpdateListeners
 import com.intellij.openapi.application.runWriteAction
 import com.intellij.openapi.command.executeCommand
 import com.intellij.openapi.components.Service
@@ -21,6 +15,12 @@ import com.intellij.psi.PsiManager
 import com.intellij.psi.codeStyle.CodeStyleManager
 import com.jetbrains.cidr.lang.OCLanguage
 import com.jetbrains.rd.util.getOrCreate
+import com.paulmethfessel.elp.execution.CodeExecutionManager
+import com.paulmethfessel.elp.execution.ImportManager
+import com.paulmethfessel.elp.model.Example
+import com.paulmethfessel.elp.util.NamingHelper
+import com.paulmethfessel.elp.util.UpdateListeners
+import com.paulmethfessel.elp.util.document
 
 val exampleKey = Key.create<Example>("ELP_EXAMPLE")
 
@@ -45,6 +45,7 @@ class ExampleService(
 
     init {
         CodeExecutionManager.registerOnActiveExampleChange(this)
+        project.classService.classListener.register(::loadExamples)
     }
 
     fun examplesForClass(clazz: Clazz): MutableList<Example> {
@@ -63,6 +64,18 @@ class ExampleService(
         }
     }
 
+    private fun loadExamples() {
+        val exampleFiles = exampleDirectory.children.filter { it.name.endsWith(".example.h") }
+
+        for (exampleFile in exampleFiles) {
+            val clazzName = exampleFile.name.split(".").dropLast(3).joinToString(".")
+            val clazz = project.classService.classes.find { it.name == clazzName } ?: continue
+            val name = NamingHelper.nextName("Example", examplesForClass(clazz).map { it.name })
+            classToExamples.getOrCreate(clazz) { mutableListOf() } += Example(project, clazz, exampleFile, name)
+        }
+        onExamplesChanged.call()
+    }
+
     private fun createExampleModule(): VirtualFile {
         val root = ModuleManager.getInstance(project)
             .modules.firstOrNull()?.rootManager?.contentRoots?.firstOrNull() ?: error("Could not find content root")
@@ -71,15 +84,11 @@ class ExampleService(
             error("Examples directory cannot be created.")
         }
 
-        return (existingExampleDir ?: root.createChildDirectory(this, "examples")).also {
-            runWriteAction {
-                it.children.forEach { child -> child.delete(this) }
-            }
-        }
+        return existingExampleDir ?: root.createChildDirectory(this, "examples")
     }
 
     private fun createExampleFile(clazz: Clazz, callback: (VirtualFile?) -> Unit) {
-        val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }) + ".example.h"
+        val name = NamingHelper.nextName(clazz.name ?: "example", examplesForClass(clazz).map { it.name }, ".") + ".example.h"
         val dir = PsiManager.getInstance(project).findDirectory(exampleDirectory) ?: return callback(null)
         runWriteAction {
             executeCommand {
