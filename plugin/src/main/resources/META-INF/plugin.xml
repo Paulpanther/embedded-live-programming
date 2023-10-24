@@ -8,6 +8,11 @@
     <depends>com.intellij.cidr.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
+<!--        <fileType-->
+<!--                name="Component"-->
+<!--                extensions="h"-->
+<!--                language="ObjectiveC"-->
+<!--                implementationClass="com.paulmethfessel.elp.editor.ComponentFile"/>-->
         <codeInsight.inlayProvider
                 language="ObjectiveC"
                 implementationClass="com.paulmethfessel.elp.editor.ReplacementInlayProvider"/>

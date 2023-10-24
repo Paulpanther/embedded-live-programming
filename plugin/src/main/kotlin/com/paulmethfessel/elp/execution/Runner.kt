@@ -18,7 +18,7 @@ import kotlin.concurrent.scheduleAtFixedRate
  */
 class Frame(
     private val path: String,
-    private val mock: Boolean = false
+    private val mock: Boolean = true
 ): Thread() {
     private var running = true
     private var firstResult = true

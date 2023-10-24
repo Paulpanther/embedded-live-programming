@@ -48,6 +48,13 @@ class TabbedExamplesView(
                 val example = project.exampleService.activeExample ?: return@action
                 showRenameExampleDialog(example)
             }
+            action("Delete Example", "Permanently deletes this example from disk", AllIcons.General.Remove) {
+                val example = project.exampleService.activeExample ?: return@action
+                val info = tabs.findInfo(example) ?: return@action
+                // TODO this will select a different example, but MuSE should not do that
+                tabs.removeTab(info, null, false)
+                example.delete()
+            }
             action("Stop Execution", "Stop the execution of the current example", AllIcons.Actions.Suspend) {
                 val example = project.exampleService.activeExample ?: return@action
                 probeService.runner.stop()

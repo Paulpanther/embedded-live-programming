@@ -15,6 +15,7 @@ import com.intellij.openapi.project.rootManager
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.paulmethfessel.elp.util.UpdateListeners
 
@@ -29,6 +30,7 @@ class ClassService(
         private set
     private var hasRequestedSmartExecution = false
     val classListener = UpdateListeners()
+    private val markedCreated = mutableListOf<VirtualFile>()
 
     val currentClass get(): Clazz? {
         val editor = FileEditorManager.getInstance(project).selectedEditor
@@ -40,10 +42,15 @@ class ClassService(
 
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
             override fun after(events: MutableList<out VFileEvent>) {
+
                 val relevant = events.mapNotNull { it.file?.toNioPath() }.any {
                     val rootPath = root?.toNioPath() ?: return@any false
                     it.startsWith(rootPath.resolve("src")) || it.startsWith(rootPath.resolve("include"))
                 }
+
+                val created = events.filterIsInstance<VFileCreateEvent>()
+//                markedCreated += created.mapNotNull { it.file }
+
                 if (relevant) {
                     update()
                 }
@@ -60,6 +67,12 @@ class ClassService(
         executeSmart {
             classes = findClasses()
             classListener.call()
+
+//            val created = markedCreated.mapNotNull { created -> classes.find { it.virtualFile == created } }
+//            for (clazz in created) {
+//                clazz.addExample("Example") {}
+//            }
+//            markedCreated.clear()
         }
     }
 

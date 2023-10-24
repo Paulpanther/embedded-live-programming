@@ -63,5 +63,9 @@ class Example(
         }
     }
 
+    fun delete() {
+        project.exampleService.deleteExample(this)
+    }
+
     override fun toString() = name
 }

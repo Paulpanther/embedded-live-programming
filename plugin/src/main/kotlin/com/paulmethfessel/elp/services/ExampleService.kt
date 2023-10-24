@@ -29,6 +29,7 @@ class ExampleService(
     val project: Project
 ) {
     private val exampleDirectory = createExampleModule()
+    private var hasLoadedExample = false
 
     val onExamplesChanged = UpdateListeners()
     private val classToExamples = mutableMapOf<Clazz, MutableList<Example>>()
@@ -64,7 +65,20 @@ class ExampleService(
         }
     }
 
+    fun deleteExample(example: Example) {
+        // TODO add delete handler that removes Tab in TabbedExampleView
+        probeService.runner.stop()
+        activeExample = null
+        classToExamples[example.parentClazz]?.remove(example)
+        runWriteAction {
+            example.ownVirtualFile.delete(this)
+        }
+    }
+
     private fun loadExamples() {
+        if (hasLoadedExample) return
+        hasLoadedExample = true
+
         val exampleFiles = exampleDirectory.children.filter { it.name.endsWith(".example.h") }
 
         for (exampleFile in exampleFiles) {
