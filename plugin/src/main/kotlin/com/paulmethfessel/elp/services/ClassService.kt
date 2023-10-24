@@ -30,7 +30,7 @@ class ClassService(
         private set
     private var hasRequestedSmartExecution = false
     val classListener = UpdateListeners()
-    private val markedCreated = mutableListOf<VirtualFile>()
+    private val markedCreated = mutableSetOf<VirtualFile>()
 
     val currentClass get(): Clazz? {
         val editor = FileEditorManager.getInstance(project).selectedEditor
@@ -49,7 +49,7 @@ class ClassService(
                 }
 
                 val created = events.filterIsInstance<VFileCreateEvent>()
-//                markedCreated += created.mapNotNull { it.file }
+                markedCreated += created.mapNotNull { it.file }
 
                 if (relevant) {
                     update()
@@ -68,11 +68,13 @@ class ClassService(
             classes = findClasses()
             classListener.call()
 
-//            val created = markedCreated.mapNotNull { created -> classes.find { it.virtualFile == created } }
-//            for (clazz in created) {
-//                clazz.addExample("Example") {}
-//            }
-//            markedCreated.clear()
+            val toRemove = mutableSetOf<VirtualFile>()
+            for (file in markedCreated) {
+                val clazz = classes.find { it.virtualFile == file } ?: continue
+                clazz.addExample("Example") {}
+                toRemove += file
+            }
+            markedCreated -= toRemove
         }
     }
 
