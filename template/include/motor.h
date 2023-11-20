@@ -11,7 +11,7 @@ struct Motor {
     void drive(float speed) {
         forwardPin.digitalWrite(speed > 0);
         backwardPin.digitalWrite(speed <= 0);
-        drivePin.analogWrite(speed * 256);
+        drivePin.analogWrite(abs((int) (speed * 255)));
     }
 
     void stop() {

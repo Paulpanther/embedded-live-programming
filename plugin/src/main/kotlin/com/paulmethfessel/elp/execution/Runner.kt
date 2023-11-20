@@ -18,7 +18,7 @@ import kotlin.concurrent.scheduleAtFixedRate
  */
 class Frame(
     private val path: String,
-    private val mock: Boolean = true
+    private val mock: Boolean
 ): Thread() {
     private var running = true
     private var firstResult = true
@@ -86,7 +86,7 @@ class Frame(
  * The resulting dyn-lib will be sent to the C++ runner and included there.
  */
 class Runner(
-    private val mock: Boolean = true
+    private val mock: Boolean
 ): Disposable {
     private var i = 0
     private val runner = File(System.getenv("ELP_RUNNER_PATH"))
@@ -137,7 +137,7 @@ class Runner(
 
         logTime("Starting frame")
         frame?.stopRunning()
-        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath).also { it.start() }
+        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath, mock).also { it.start() }
     }
 
     fun stop() {
@@ -147,7 +147,7 @@ class Runner(
     fun restart() {
         val lib = lastLib ?: return
         frame?.stopRunning()
-        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath).also { it.start() }
+        frame = Frame(File(userCode, "build/lib$lib.so").absolutePath, mock).also { it.start() }
     }
 
     override fun dispose() {

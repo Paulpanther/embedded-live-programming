@@ -49,7 +49,7 @@ public:
 	explicit OutputPin(int pin, int off = LOW): pin(pin), off(off) {
 		pinMode(pin, OUTPUT);
         channel = lastChannel++;
-        ledcSetup(channel, 8, 5000);
+        ledcSetup(channel, 5000, 8);
         ledcAttachPin(pin, channel);
 	}
 
