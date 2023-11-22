@@ -16,8 +16,6 @@
 
 using namespace std::chrono_literals;
 
-void setInterface(Interface*);
-
 // Following functions are provided for user-code
 
 int analogRead(int pin);

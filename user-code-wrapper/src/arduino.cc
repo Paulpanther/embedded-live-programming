@@ -9,10 +9,6 @@ std::random_device rd; // obtain a random number from hardware
 std::mt19937 gen(rd()); // seed the generator
 std::uniform_int_distribution<> distr(-11, 5);
 
-void setInterface(Interface* i) {
-    interface = i;
-}
-
 int analogRead(int pin) {
     // int rand = distr(gen);
     int read = interface->call<int>("analogRead", (uint8_t) pin) / 4096.0 * 255;
@@ -106,5 +102,6 @@ void initSerial() {
 }
 
 void closeSerial() {
-    delete interface;
+    interface->close();
+//    delete interface;
 }

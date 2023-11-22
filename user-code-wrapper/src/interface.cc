@@ -1,9 +1,6 @@
-#include <cstring>
 #include "utils.h"
-#include <iostream>
 
 #include "interface.tcc"
-#include <filesystem>
 
 #define _PROTOCOL "simpleRPC"
 #define _VERSION "\3\0\0"
@@ -35,20 +32,8 @@
  *      P | void *             | integer           |
  */
 unordered_map<char, int> _rpcTypeSize = {
-        {'c', 1},
-        {'b', 1},
-        {'B', 1},
-        {'?', 1},
-        {'h', 2},
-        {'H', 2},
-        {'i', 4},
-        {'I', 4},
-        {'l', 4},
-        {'L', 4},
-        {'q', 8},
-        {'Q', 8},
-        {'e', 2},
-        {'f', 4},
+        {'c', 1}, {'b', 1}, {'B', 1}, {'?', 1}, {'h', 2}, {'H', 2}, {'i', 4},
+        {'I', 4}, {'l', 4}, {'L', 4}, {'q', 8}, {'Q', 8}, {'e', 2}, {'f', 4},
         {'d', 8}};
 
 
@@ -58,19 +43,11 @@ unordered_map<char, int> _rpcTypeSize = {
  * \param fd File descriptor.
  */
 Interface::Interface(int fd) {
-//    std::cout << std::filesystem::current_path() << std::endl;
     open(fd);
-//    debugFile.open("debug.txt", std::ios::out | std::ios::app);
-//    if (debugFile.fail()) {
-//        throw std::ios_base::failure(std::strerror(errno));
-//    }
-//    debugFile.exceptions(debugFile.exceptions() | std::ios::failbit | std::ifstream::badbit);
-    std::cout << "DEBUG FILE CREATED" << std::endl;
 }
 
 //! Destructor.
 Interface::~Interface(void) {
-//    debugFile.close();
     close();
 }
 
@@ -109,7 +86,7 @@ void Interface::open(int fd) {
     while (line.length()) {
         _map.insert({
                             split(split(line, ";")[1], ":")[0],
-                            tuple<uint8_t, string, vector<string>, string>{
+                            tuple<uint8_t, string, vector<string>, string> {
                                     index,
                                     split(split(line, ";")[0], ":")[0],
                                     split(strip(split(split(line, ";")[0], ":", 1)[1], " "), " "),
@@ -125,14 +102,13 @@ void Interface::open(int fd) {
  * Deconfigure the interface.
  */
 void Interface::close(void) {
-    std::cout << "CLOSING PORT" << std::endl;
-//    ::close(_fd);
+    ::close(_fd);
     status &= ~STATUS_INITIALISED;
 }
 
 /*!
  */
-void Interface::read(string *data) {
+void Interface::read(string* data) {
     uint8_t c;
     read(&c);
     while (c) {
@@ -140,26 +116,3 @@ void Interface::read(string *data) {
         read(&c);
     }
 }
-
-//template<class R>
-//void Interface::debug(const std::string &type, const R *msg, int size) {
-//    auto time = std::time(nullptr);
-//    auto tm = *std::localtime(&time);
-//    debugFile << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << " <" << type << "> ";
-//    for (int i = 0; i < size; i++) {
-//        debugFile << msg[i];
-//    }
-//    debugFile << std::endl;
-//}
-
-//template<class R>
-//void Interface::debug(const std::string &type, const R *msg, int size) {
-//    auto time = std::time(nullptr);
-//    auto tm = *std::localtime(&time);
-//    debugFile << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << " <" << type << "> ";
-//    for (int i = 0; i < size; i++) {
-//        debugFile << msg[i];
-//    }
-//    debugFile << std::endl;
-//}
-
