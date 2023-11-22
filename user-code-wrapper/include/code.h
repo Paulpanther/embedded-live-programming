@@ -26,6 +26,6 @@ void setup();
 void loop();
 
 // Lib functions that runner will call
-extern "C" void _setup(Interface*);
+extern "C" void _setup();
 extern "C" void _loop();
 extern "C" void onClose();

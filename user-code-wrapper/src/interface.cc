@@ -58,18 +58,19 @@ unordered_map<char, int> _rpcTypeSize = {
  * \param fd File descriptor.
  */
 Interface::Interface(int fd) {
-    std::cout << std::filesystem::current_path() << std::endl;
+//    std::cout << std::filesystem::current_path() << std::endl;
     open(fd);
-    debugFile.open("debug.txt", std::ios::out | std::ios::app);
-    if (debugFile.fail()) {
-        throw std::ios_base::failure(std::strerror(errno));
-    }
-    debugFile.exceptions(debugFile.exceptions() | std::ios::failbit | std::ifstream::badbit);
+//    debugFile.open("debug.txt", std::ios::out | std::ios::app);
+//    if (debugFile.fail()) {
+//        throw std::ios_base::failure(std::strerror(errno));
+//    }
+//    debugFile.exceptions(debugFile.exceptions() | std::ios::failbit | std::ifstream::badbit);
+    std::cout << "DEBUG FILE CREATED" << std::endl;
 }
 
 //! Destructor.
 Interface::~Interface(void) {
-    debugFile.close();
+//    debugFile.close();
     close();
 }
 
@@ -124,7 +125,8 @@ void Interface::open(int fd) {
  * Deconfigure the interface.
  */
 void Interface::close(void) {
-    ::close(_fd);
+    std::cout << "CLOSING PORT" << std::endl;
+//    ::close(_fd);
     status &= ~STATUS_INITIALISED;
 }
 
@@ -150,8 +152,8 @@ void Interface::read(string *data) {
 //    debugFile << std::endl;
 //}
 
-template<class R>
-void Interface::debug(const std::string &type, const R *msg, int size) {
+//template<class R>
+//void Interface::debug(const std::string &type, const R *msg, int size) {
 //    auto time = std::time(nullptr);
 //    auto tm = *std::localtime(&time);
 //    debugFile << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << " <" << type << "> ";
@@ -159,5 +161,5 @@ void Interface::debug(const std::string &type, const R *msg, int size) {
 //        debugFile << msg[i];
 //    }
 //    debugFile << std::endl;
-}
+//}
 

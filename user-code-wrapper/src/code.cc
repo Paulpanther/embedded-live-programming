@@ -1,5 +1,6 @@
 #include "code.h"
 #include <sstream>
+#include <iostream>
 
 extern "C" {
     std::vector<Probe> probes;
@@ -43,16 +44,17 @@ T &add_probe(int code, T &value) {
 }
 
 void _setup() {
+    std::cout << "USER SETUP" << std::endl;
     initSerial();
-    //setup();
+    setup();
 }
 
 void _loop() {
-    //probes.clear();
-    //loop();
+    probes.clear();
+    loop();
 }
 
 void onClose() {
-    //closeSerial();
+    std::cout << "USER CLOSE" << std::endl;
+    closeSerial();
 }
-

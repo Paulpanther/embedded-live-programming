@@ -75,8 +75,8 @@ public:
 
     uint8_t status = 0x00;  //!< Initialisation and error status.
 
-    template<class R>
-    void debug(const std::string &type, const R *msg, int size);
+//    template<class R>
+//    void debug(const std::string &type, const R *msg, int size);
 
 private:
 
@@ -92,6 +92,7 @@ private:
     std::ofstream debugFile;
 };
 
+
 /*!
  * Read a value from a file descriptor.
  *
@@ -102,7 +103,7 @@ void Interface::read(T *data) {
     for (uint8_t i = 0; i < sizeof(T); i++) {
         ::read(_fd, &((uint8_t *) data)[i], 1);
     }
-    debug("read", data, sizeof(T));
+    //debug("read", data, sizeof(T));
 }
 
 /*!
@@ -122,7 +123,7 @@ void Interface::read(T *data, char type) {
     for (uint8_t i = 0; i < _rpcTypeSize[type]; i++) {
         ::read(_fd, &((uint8_t *) data)[i], 1);
     }
-    debug("read", data, _rpcTypeSize[type]);
+//    debug("read", data, _rpcTypeSize[type]);
 }
 
 /*!
@@ -132,7 +133,7 @@ void Interface::read(T *data, char type) {
  */
 template<class T>
 void Interface::write(T *data) {
-    debug("write", data, sizeof(T));
+//    debug("write", data, sizeof(T));
     for (uint8_t i = 0; i < sizeof(T); i++) {
         ::write(_fd, &((uint8_t *) data)[i], 1);
     }
@@ -148,7 +149,7 @@ void Interface::write(T *data) {
  */
 template<class T>
 void Interface::write(T *data, char type) {
-    debug("write", data, _rpcTypeSize[type]);
+//    debug("write", data, _rpcTypeSize[type]);
     if (rpcTypeOf(*data) != type) {
         status |= STATUS_PARAM_TYPE_WARNING;
     }
