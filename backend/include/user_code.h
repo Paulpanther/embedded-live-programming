@@ -5,14 +5,13 @@
 #include <vector>
 #include "probe.h"
 #include "debug_util.h"
-#include "interface.tcc"
 
 class UserCode {
     void* handle;
     void (*onClose)();
 
 public:
-    void (*setup)(Interface*);
+    void (*setup)();
     void (*loop)();
     std::vector<Probe>* probes;
 
@@ -23,7 +22,7 @@ public:
             exit(1);
         }
 
-        setup = (void (*)(Interface*)) dlsym(handle, "_setup");
+        setup = (void (*)()) dlsym(handle, "_setup");
         loop = (void (*)()) dlsym(handle, "_loop");
         onClose = (void (*)()) dlsym(handle, "onClose");
         probes = (std::vector<Probe>*) dlsym(handle, "probes");

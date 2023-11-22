@@ -32,3 +32,6 @@ long readCounter(int channel);
 void clearCounter(int channel);
 void delay(int time);
 int time();
+
+void initSerial();
+void closeSerial();

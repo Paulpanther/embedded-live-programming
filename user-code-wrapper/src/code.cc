@@ -42,16 +42,17 @@ T &add_probe(int code, T &value) {
     return value;
 }
 
-void _setup(Interface* i) {
-    setInterface(i);
-    setup();
+void _setup() {
+    initSerial();
+    //setup();
 }
 
 void _loop() {
-    probes.clear();
-    loop();
+    //probes.clear();
+    //loop();
 }
 
 void onClose() {
+    //closeSerial();
 }
 
