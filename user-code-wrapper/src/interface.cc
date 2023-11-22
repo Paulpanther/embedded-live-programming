@@ -1,3 +1,6 @@
+#include <cstring>
+#include <iostream>
+#include <filesystem>
 #include "utils.h"
 
 #include "interface.tcc"
@@ -43,11 +46,21 @@ unordered_map<char, int> _rpcTypeSize = {
  * \param fd File descriptor.
  */
 Interface::Interface(int fd) {
+    std::cout << std::filesystem::current_path() << std::endl;
+    debugFile.open("debug.txt", std::ios::out | std::ios::app);
+    if (debugFile.fail()) {
+        throw std::ios_base::failure(std::strerror(errno));
+    }
+    debugFile.exceptions(debugFile.exceptions() | std::ios::failbit | std::ifstream::badbit);
+    std::cout << "Created debug file" << std::endl;
+
     open(fd);
 }
 
 //! Destructor.
 Interface::~Interface(void) {
+    std::cout << "USER CLOSE" << std::endl;
+    debugFile.close();
     close();
 }
 
@@ -115,4 +128,17 @@ void Interface::read(string* data) {
         *data += c;
         read(&c);
     }
+}
+
+template<class R>
+void Interface::debug(const std::string &type, const R *msg, int size) {
+//    auto time = std::time(nullptr);
+//    auto tm = *std::localtime(&time);
+//    debugFile << std::put_time(&tm, "%d-%m-%Y %H-%M-%S") << " <" << type << "> ";
+//    debugFile << "i";
+//    std::cout << "i";
+//    for (int i = 0; i < size; i++) {
+//        debugFile << msg[i];
+//    }
+//    debugFile << std::endl;
 }

@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <unistd.h>
+#include <fstream>
 
 #include "types.h"
 
@@ -63,6 +64,10 @@ private:
     uint8_t _endianness;
     uint8_t _sizeT;
     unordered_map<string, tuple<uint8_t, string, vector<string>, string>> _map;
+    std::ofstream debugFile;
+
+    template<class R>
+    void debug(const std::string &type, const R *msg, int size);
 };
 
 
@@ -76,6 +81,7 @@ void Interface::read(T* data) {
     for (uint8_t i = 0; i < sizeof(T); i++) {
         ::read(_fd, &((uint8_t*)data)[i], 1);
     }
+//    debug("read", data, sizeof(T));
 }
 
 /*!
@@ -94,7 +100,9 @@ void Interface::read(T* data, char type) {
     }
     for (uint8_t i = 0; i < _rpcTypeSize[type]; i++) {
         ::read(_fd, &((uint8_t*)data)[i], 1);
+//        debugFile << (char) data[i];
     }
+//    debugFile << std::endl;
 }
 
 /*!
