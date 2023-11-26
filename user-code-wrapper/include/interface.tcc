@@ -53,7 +53,7 @@ class Interface {
     template <class R, class... Args>
       R call(char const*, Args...);
     template <class... Args>
-      void call(char const*, Args...);
+      void call_void(char const*, Args...);
     uint8_t status = 0x00;  //!< Initialisation and error status.
   private:
     inline void _call(vector<string>) {}
@@ -173,7 +173,7 @@ void Interface::_call(vector<string> sig, T const& val, Args const&... args) {
  * \param args RPC method parameter values.
  */
 template <class... Args>
-void Interface::call(char const* cmd, Args... args) {
+void Interface::call_void(char const* cmd, Args... args) {
   status &= ~STATUS_PARAM_TYPE_WARNING;
   write(&::get<0>(_map[cmd]));
   _call(::get<2>(_map[cmd]), args...);
@@ -192,7 +192,7 @@ void Interface::call(char const* cmd, Args... args) {
 template <class R, class... Args>
 void Interface::call(R& data, char const* cmd, Args... args) {
   status &= ~STATUS_RETURN_TYPE_WARNING;
-  call(cmd, args...);
+  call_void(cmd, args...);
   read(&data, ::get<1>(_map[cmd])[0]);
 }
 
