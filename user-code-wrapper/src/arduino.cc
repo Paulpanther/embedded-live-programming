@@ -15,45 +15,45 @@ void setInterface(Interface* i) {
 
 int analogRead(int pin) {
     // int rand = distr(gen);
-    int read = interface->call<int>("analogRead", (uint8_t) pin) / 4096.0 * 255;
+    int read = interface->call<int32_t>("analogRead", (int32_t) pin) / 4096.0 * 255;
     return read;
     // return std::max(read + rand, 0);
 }
 
 void ledcSetup(int channel, int freq, int resolution) {
-    interface->call<int>("ledcSetup", (uint8_t) channel, (uint8_t) freq, (uint8_t) resolution);
+    interface->call<int32_t>("ledcSetup", (int32_t) channel, (int32_t) freq, (int32_t) resolution);
 }
 
 void ledcAttachPin(int pin, int channel) {
-    interface->call<int>("ledcAttachPin", (uint8_t) pin, (uint8_t) channel);
+    interface->call<int32_t>("ledcAttachPin", (int32_t) pin, (int32_t) channel);
 }
 
 void ledcWrite(int channel, int dutyCycle) {
-    interface->call<int>("ledcWrite", (uint8_t) channel, (uint8_t) dutyCycle);
+    interface->call<int32_t>("ledcWrite", (int32_t) channel, (int32_t) dutyCycle);
 }
 
 int digitalRead(int pin) {
-    return interface->call<int>("digitalRead", (uint8_t) pin);
+    return interface->call<int32_t>("digitalRead", (int32_t) pin);
 }
 
 void digitalWrite(int pin, int value) {
-    interface->call<int>("digitalWrite", (uint8_t) pin, (uint8_t) value);
+    interface->call<int32_t>("digitalWrite", (int32_t) pin, (int32_t) value);
 }
 
 void pinMode(int pin, int mode) {
-    interface->call<int>("pinMode", (uint8_t) pin, (uint8_t) mode);
+    interface->call<int32_t>("pinMode", (int32_t) pin, (int32_t) mode);
 }
 
 void attachCounter(int channel, int pin) {
-    interface->call<int>("attachCounter", (uint8_t) channel, (uint8_t) pin);
+    interface->call<int32_t>("attachCounter", (int32_t) channel, (int32_t) pin);
 }
 
 void clearCounter(int channel) {
-    interface->call<int>("clearCounter", (uint8_t) channel);
+    interface->call<int32_t>("clearCounter", (int32_t) channel);
 }
 
 long readCounter(int channel) {
-    return interface->call<long>("readCounter", (uint8_t) channel);
+    return interface->call<long>("readCounter", (int32_t) channel);
 }
 
 void delay(int time) {
