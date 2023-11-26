@@ -6,10 +6,14 @@ import com.paulmethfessel.elp.util.error
 import com.paulmethfessel.elp.util.logTime
 import com.intellij.openapi.Disposable
 import com.intellij.psi.PsiFile
+import com.paulmethfessel.elp.settings.settings
+import com.paulmethfessel.elp.util.ExampleNotification
 import java.io.File
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.scheduleAtFixedRate
+
+
 
 /**
  * Frame of execution. Will be restarted everytime changes happen.
@@ -29,7 +33,11 @@ class Frame(
         } else {
             try {
                 logTime("Execute")
-                execute(path)
+                val success = execute(path, settings.port)
+
+                if (success == -1) {
+                    ExampleNotification.notifyError(null, "No device at port '${settings.port}'")
+                }
             } catch(_: Exception) {
                 error("Error in Cpp Runtime")
             }
@@ -43,7 +51,7 @@ class Frame(
         logTime("End Join")
     }
 
-    private external fun execute(path: String)
+    private external fun execute(path: String, port: String): Int
 
     @Suppress("unused")
     private fun onIteration(probes: Array<Probe>): Boolean {
@@ -89,9 +97,9 @@ class Runner(
     private val mock: Boolean
 ): Disposable {
     private var i = 0
-    private val runner = File(System.getenv("ELP_RUNNER_PATH"))
+    private val runner get() = File(settings.backend)
         .also { if (!it.exists()) error("Invalid directory for backend: ${it.absolutePath}") }
-    private val userCode = File(System.getenv("ELP_USER_CODE_PATH"))
+    private val userCode = File(settings.userCodeWrapper)
         .also { if (!it.exists()) error("Invalid directory for user-code: ${it.absolutePath}") }
 
     private var frame: Frame? = null

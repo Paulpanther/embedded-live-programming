@@ -8,11 +8,12 @@
     <depends>com.intellij.cidr.lang</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-<!--        <fileType-->
-<!--                name="Component"-->
-<!--                extensions="h"-->
-<!--                language="ObjectiveC"-->
-<!--                implementationClass="com.paulmethfessel.elp.editor.ComponentFile"/>-->
+        <!--        <fileType-->
+        <!--                name="Component"-->
+        <!--                extensions="h"-->
+        <!--                language="ObjectiveC"-->
+        <!--                implementationClass="com.paulmethfessel.elp.editor.ComponentFile"/>-->
+        <applicationService serviceImplementation="com.paulmethfessel.elp.settings.ExecutionSettings"/>
         <codeInsight.inlayProvider
                 language="ObjectiveC"
                 implementationClass="com.paulmethfessel.elp.editor.ReplacementInlayProvider"/>
@@ -57,8 +58,14 @@
         <lang.foldingBuilder
                 implementationClass="com.paulmethfessel.elp.editor.NamespaceFoldingBuilder"
                 language="ObjectiveC"/>
-        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ExampleLineMarkerProvider" />
-        <codeInsight.lineMarkerProvider language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ReplacementLineMarkerProvider" />
-        <annotator language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ProbeAnnotator" />
+        <codeInsight.lineMarkerProvider language="ObjectiveC"
+                                        implementationClass="com.paulmethfessel.elp.editor.ExampleLineMarkerProvider"/>
+        <codeInsight.lineMarkerProvider language="ObjectiveC"
+                                        implementationClass="com.paulmethfessel.elp.editor.ReplacementLineMarkerProvider"/>
+        <annotator language="ObjectiveC" implementationClass="com.paulmethfessel.elp.editor.ProbeAnnotator"/>
+        <applicationConfigurable
+                parentId="tools"
+                instance="com.paulmethfessel.elp.settings.ExecutionSettingsView"
+                displayName="MµSE"/>
     </extensions>
 </idea-plugin>

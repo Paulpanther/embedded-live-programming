@@ -10,6 +10,7 @@ import com.intellij.openapi.components.service
 import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiFile
+import com.paulmethfessel.elp.settings.settings
 
 @Service
 class ProbeService: Disposable {
@@ -20,7 +21,7 @@ class ProbeService: Disposable {
     var probes = mutableMapOf<String, MutableList<ProbePresentation>>()
 
     val probeUpdater = ProbeUpdateController().start()
-    val runner = Runner(mock = false).start()
+    val runner = Runner(settings.mock).start()
     private var loading: LoadingNotification? = null
 
     var lastExecutedHash = 0

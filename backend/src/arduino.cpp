@@ -2,18 +2,20 @@
 
 int fd;
 Interface* interface;
-const char* USB_PORT = "/dev/ttyUSB0";
 
-Interface* getInterface() {
+Interface* getInterface(const std::string & port) {
     if (interface == nullptr) {
-        initSerial();
+        initSerial(port);
     }
     return interface;
 }
 
-void initSerial() {
-    fd = open(USB_PORT, O_RDWR | O_NOCTTY);
-    if (fd < 0) std::cout << "Error opening USB: " << strerror(errno) << std::endl;
+void initSerial(const std::string & port) {
+    fd = open(port, O_RDWR | O_NOCTTY);
+    if (fd < 0) {
+        std::cout << "Error opening USB: " << strerror(errno) << std::endl;
+        return;
+    }
 
     struct termios tty;
 
