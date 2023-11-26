@@ -108,6 +108,8 @@ class Runner(
     fun start(): Runner {
         if (!mock) {
             System.load(File(runner, "runner.so").absolutePath)
+        } else {
+            ExampleNotification.notifyError(null, "Started in mock mode")
         }
         return this
     }
@@ -129,11 +131,17 @@ class Runner(
 
         val lib = "code${i++}"
         lastLib = lib
-        Runtime
+        val proc = Runtime
             .getRuntime()
             .exec(arrayOf(File(userCode, "build.sh").absolutePath, lib))
-            .waitFor(20, TimeUnit.SECONDS)
+        val err = proc.errorStream
+        proc.waitFor(20, TimeUnit.SECONDS)
         logTime("After build")
+
+        val errText = err.bufferedReader().readText()
+        if (proc.exitValue() != 0) {
+            error("Error during compilation of user code:\n$errText")
+        }
 
         // lib file name has to change else C++ will not load it
         val libFile = File(userCode, "build/lib$lib.so")
