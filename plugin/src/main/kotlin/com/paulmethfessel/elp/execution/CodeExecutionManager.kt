@@ -29,12 +29,12 @@ object CodeExecutionManager {
     }
 
     fun run(project: Project) {
-        val original = project.classService.classes.map { it.file }
+        val originals = project.classService.classes.map { it.file }
         val cppFiles = project.classService.cppFiles.mapNotNull { it.getPsiFile(project) }
         val example = project.exampleService.activeExample ?: return
 
         // store hash to not execute same codebase multiple times
-        val hash = CurrentFileState(original, example).hashCode()
+        val hash = CurrentFileState(originals + cppFiles, example).hashCode()
         if (probeService.lastExecutedHash == hash) return
         probeService.lastExecutedHash = hash
 
@@ -45,9 +45,9 @@ object CodeExecutionManager {
                     val exampleFile = example.ownFile.clone()
 
                     // check if files contain no errors
-                    if (!checkFiles(original + exampleFile)) return@executeCommand
+                    if (!checkFiles(originals + exampleFile)) return@executeCommand
 
-                    val files = original.map { it.clone() }
+                    val files = (originals + cppFiles).map { it.clone() }
 
                     logTime("Start Probe Run")
                     FileProbeInjection.run(files + exampleFile)
