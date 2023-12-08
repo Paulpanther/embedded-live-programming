@@ -17,6 +17,12 @@ class ExecutionSettingsView: Configurable {
                     .bindText(settings::port)
                     .validationOnInput { if (it.text.isBlank()) error("Missing port") else null }
             }
+            row {
+                textField()
+                    .label("File filter")
+                    .comment("Comma separated list of files to include (Empty=all), requires restart")
+                    .bindText(settings::fileFilter)
+            }
             group("Developer Settings") {
                 row {
                     checkBox("Mock probes")

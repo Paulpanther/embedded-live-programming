@@ -5,17 +5,17 @@
 #include <thread>
 #include "arduino.h"
 
-JNIEXPORT jint JNICALL Java_com_paulmethfessel_elp_execution_Frame_execute(JNIEnv *env, jobject obj, jstring jpath, jstring jport) {
+JNIEXPORT jint JNICALL Java_com_paulmethfessel_elp_execution_Frame_execute(JNIEnv *env, jobject obj, jstring jpath, jstring jport, jboolean mock) {
     auto path = env->GetStringUTFChars(jpath, nullptr);
     auto port = env->GetStringUTFChars(jport, nullptr);
     // Load user code as dynamic library
     auto user_code = UserCode(path);
 
     // call setup (might also setup serial)
-    auto interface = getInterface(port);
-    if (interface == nullptr) return -1;
+    auto interface = mock ? nullptr : getInterface(port);
+    if (!mock && interface == nullptr) return -1;
 
-    user_code.setup(getInterface());
+    user_code.setup(interface);
     bool keep_running;
     do {
         // loop until onIteration (in plugin) returns false

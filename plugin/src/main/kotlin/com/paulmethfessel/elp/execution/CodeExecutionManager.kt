@@ -30,7 +30,7 @@ object CodeExecutionManager {
 
     fun run(project: Project) {
         val originals = project.classService.classes.map { it.file }
-        val cppFiles = project.classService.cppFiles.mapNotNull { it.getPsiFile(project) }
+        val cppFiles = project.classService.nonClassFiles.mapNotNull { it.getPsiFile(project) }
         val example = project.exampleService.activeExample ?: return
 
         // store hash to not execute same codebase multiple times
@@ -61,7 +61,7 @@ object CodeExecutionManager {
 
                     // Write Action is finished
                     invokeLater {
-                        probeService.runner.executeFiles(files + runner + cppFiles)
+                        probeService.runner.executeFiles(files + runner)
 
                         logTime("Update Presentation")
                         @Suppress("UnstableApiUsage")

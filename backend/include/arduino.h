@@ -10,6 +10,6 @@
 
 using namespace std::chrono_literals;
 
-void initSerial();
+void initSerial(const char*);
 void closeSerial();
-Interface* getInterface();
+Interface* getInterface(const char*);

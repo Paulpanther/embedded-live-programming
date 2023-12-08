@@ -17,14 +17,17 @@ import com.intellij.openapi.vfs.VirtualFileManager
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileCreateEvent
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.paulmethfessel.elp.settings.settings
 import com.paulmethfessel.elp.util.UpdateListeners
+import java.io.File
+import java.nio.file.Path
 
 @Service(Service.Level.PROJECT)
 class ClassService(
     private val project: Project
 ): Disposable {
     private var files = listOf<VirtualFile>()
-    var cppFiles = listOf<VirtualFile>()
+    var nonClassFiles = listOf<VirtualFile>()
         private set
     var classes = listOf<Clazz>()
         private set
@@ -43,8 +46,12 @@ class ClassService(
         project.messageBus.connect().subscribe(VirtualFileManager.VFS_CHANGES, object: BulkFileListener {
             override fun after(events: MutableList<out VFileEvent>) {
 
-                val relevant = events.mapNotNull { it.file?.toNioPath() }.any {
-                    val rootPath = root?.toNioPath() ?: return@any false
+                fun VirtualFile.saveToNioPath(): Path? {
+                    return try { this.toNioPath() } catch (e: Exception) { null }
+                }
+
+                val relevant = events.mapNotNull { it.file?.saveToNioPath() }.any {
+                    val rootPath = root?.saveToNioPath() ?: return@any false
                     it.startsWith(rootPath.resolve("src")) || it.startsWith(rootPath.resolve("include"))
                 }
 
@@ -62,10 +69,13 @@ class ClassService(
 
     private fun update() {
         val allFiles = findOpenFiles()
-        files = allFiles.filter { it.extension == "h" }
-        cppFiles = allFiles.filter { it.extension == "cpp" }
+        files = allFiles.filter { it.extension == "h" || it.extension == "hpp" }
+        nonClassFiles = allFiles.filter { it.extension == "cpp" }
         executeSmart {
             classes = findClasses()
+            val classFiles = classes.map { it.virtualFile }
+            val others = files.filter { it !in classFiles }
+            nonClassFiles += others
             classListener.call()
 
             val toRemove = mutableSetOf<VirtualFile>()
@@ -94,7 +104,15 @@ class ClassService(
         val root = root ?: return listOf()
         val src = root.children.find { it.name == "src" }?.recursiveChildren ?: listOf()
         val include = root.children.find { it.name == "include" }?.recursiveChildren ?: listOf()
-        return src + include.filter { it.name != "code.h" }
+        val allFiles = (src + include).filter { it.nameWithoutExtension != "code" }
+        val filter = settings.fileFilter
+            .split(";")
+            .map { File(project.basePath!!, it) }
+        filter.forEach { if (!it.exists()) error("Filter file $it does not exist") }
+
+        if (filter.isEmpty()) return allFiles
+        return allFiles
+            .filter { it.extension != "cpp" || File(it.path) in filter }
     }
 
     fun findClass(virtualFile: VirtualFile) = classes.find { it.virtualFile == virtualFile }

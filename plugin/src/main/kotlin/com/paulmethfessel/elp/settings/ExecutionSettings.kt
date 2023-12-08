@@ -14,6 +14,7 @@ class ExecutionSettings: PersistentStateComponent<ExecutionSettings> {
     var mock = false
     var backend: String = System.getenv("ELP_RUNNER_PATH")
     var userCodeWrapper: String = System.getenv("ELP_USER_CODE_PATH")
+    var fileFilter = ""
 
     override fun getState() = this
 

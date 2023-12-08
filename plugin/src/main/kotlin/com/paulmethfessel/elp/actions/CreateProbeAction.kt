@@ -9,10 +9,12 @@ import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.parentOfType
+import com.jetbrains.cidr.lang.psi.OCCppStaticAssert
+import com.jetbrains.cidr.lang.psi.OCDeclarator
 import com.jetbrains.cidr.lang.psi.OCExpression
 import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 
-private val supportedTypes = listOf("int", "float", "double", "bool", "std::string")
+private val supportedTypes = listOf("int", "float", "double", "bool", "std::string", "const char *")
 
 /**
  * takes the current expression and stores it as a possible probe location.
@@ -40,5 +42,8 @@ class CreateProbeAction: PsiElementBaseIntentionAction() {
 
 val OCExpression.isValidProbeType get(): Boolean {
     val inFunction = parentOfType<OCFunctionDefinition>() != null
-    return inFunction && (resolvedType.name in supportedTypes || resolvedType.isCString) && text.isNotBlank()
+    val inStaticAssert = parentOfType<OCCppStaticAssert>() != null
+    val inDeclarator = parentOfType<OCDeclarator>()
+    val notConst = inDeclarator == null || !inDeclarator.resolvedType.isConst
+    return inFunction && resolvedType.name in supportedTypes && text.isNotBlank() && notConst && !inStaticAssert
 }

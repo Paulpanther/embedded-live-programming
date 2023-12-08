@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit
 import kotlin.concurrent.scheduleAtFixedRate
 
 
-
 /**
  * Frame of execution. Will be restarted everytime changes happen.
  * execute calls C++ function through JNI.
@@ -23,24 +22,20 @@ import kotlin.concurrent.scheduleAtFixedRate
 class Frame(
     private val path: String,
     private val mock: Boolean
-): Thread() {
+) : Thread() {
     private var running = true
     private var firstResult = true
 
     override fun run() {
-        if (mock) {
-            mockExecute()
-        } else {
-            try {
-                logTime("Execute")
-                val success = execute(path, settings.port)
+        try {
+            logTime("Execute")
+            val success = execute(path, settings.port, mock)
 
-                if (success == -1) {
-                    ExampleNotification.notifyError(null, "No device at port '${settings.port}'")
-                }
-            } catch(_: Exception) {
-                error("Error in Cpp Runtime")
+            if (success == -1) {
+                ExampleNotification.notifyError(null, "No device at port '${settings.port}'")
             }
+        } catch (_: Exception) {
+            error("Error in Cpp Runtime")
         }
     }
 
@@ -51,7 +46,7 @@ class Frame(
         logTime("End Join")
     }
 
-    private external fun execute(path: String, port: String): Int
+    private external fun execute(path: String, port: String, mock: Boolean): Int
 
     @Suppress("unused")
     private fun onIteration(probes: Array<Probe>): Boolean {
@@ -95,10 +90,11 @@ class Frame(
  */
 class Runner(
     private val mock: Boolean
-): Disposable {
+) : Disposable {
     private var i = 0
-    private val runner get() = File(settings.backend)
-        .also { if (!it.exists()) error("Invalid directory for backend: ${it.absolutePath}") }
+    private val runner
+        get() = File(settings.backend)
+            .also { if (!it.exists()) error("Invalid directory for backend: ${it.absolutePath}") }
     private val userCode = File(settings.userCodeWrapper)
         .also { if (!it.exists()) error("Invalid directory for user-code: ${it.absolutePath}") }
 
@@ -106,25 +102,31 @@ class Runner(
     private var lastLib: String? = null
 
     fun start(): Runner {
-        if (!mock) {
-            System.load(File(runner, "runner.so").absolutePath)
-        } else {
+        System.load(File(runner, "runner.so").absolutePath)
+        if (mock) {
             ExampleNotification.notifyError(null, "Started in mock mode")
         }
         return this
     }
 
     fun executeFiles(files: List<PsiFile>) {
-        if (mock) {
-            if (frame == null) {
-                frame = Frame("", true).also { it.start() }
-            }
-            return
-        }
+//        if (mock) {
+//            if (frame == null) {
+//                frame = Frame("", true).also { it.start() }
+//            }
+//            return
+//        }
 
         File(userCode, "src/user").listFiles()?.forEach { it.delete() }
         for (file in files) {
             File(userCode, "src/user/${file.name}").writeText(file.text)
+        }
+
+        val base = File(files[0].project.basePath!!)
+        val cmakeAdditionFile = File(base, "ExampleCMakeLists.txt")
+        if (cmakeAdditionFile.exists()) {
+            val cmake = File(userCode, "CMakeListsAddition.txt")
+            cmake.writeText(cmakeAdditionFile.readText())
         }
 
         logTime("After writing files")

@@ -4,7 +4,20 @@ import com.paulmethfessel.elp.model.Example
 import com.paulmethfessel.elp.util.structs
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.jetbrains.cidr.lang.parser.OCElementType
+import com.jetbrains.cidr.lang.parser.OCElementTypes
+import com.jetbrains.cidr.lang.parser.OCTokenTypes
+import com.jetbrains.cidr.lang.psi.OCBlockStatement
+import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
 import com.jetbrains.cidr.lang.psi.OCStruct
+import com.jetbrains.cidr.lang.psi.impl.OCLazyBlockStatementImpl
+import com.jetbrains.cidr.lang.symbols.OCVisibility
+import com.jetbrains.cidr.lang.util.OCElementFactory
+import com.paulmethfessel.elp.services.classService
+import com.paulmethfessel.elp.util.childOfType
+import com.paulmethfessel.elp.util.document
+import com.paulmethfessel.elp.util.getPsiFile
+import java.io.File
 
 object FileReplacementInjection {
     fun run(example: Example, files: List<PsiFile>, exampleFile: PsiFile) {
@@ -24,10 +37,37 @@ object FileReplacementInjection {
         }
         val structs = files.flatMap { it.structs }
         for (struct in structs) {
-            var anchor: PsiElement? = struct.members.lastOrNull()
-            for (modification in modifications.filter { it.originalStruct == struct }) {
-                anchor = struct.addAfter(modification.added.element, anchor)
+            var anchor: PsiElement = struct.members.lastOrNull() ?: struct
+            val cppFile = files.find { it.name == struct.containingFile.virtualFile.nameWithoutExtension + ".cpp" }
+            val mods = modifications.filter { it.originalStruct == struct }
+            if (mods.isEmpty()) continue
+
+            val public = OCElementFactory.create(OCVisibility.PUBLIC.elementType!!, struct)
+            val colon = OCElementFactory.create(OCElementType(OCTokenTypes.COLON.debugName, OCTokenTypes.COLON.name), struct)
+            anchor = struct.addAfter(public, anchor)
+            anchor = struct.addAfter(colon, anchor)
+
+            for (modification in mods) {
+                val elem = modification.added.element
+                if (cppFile == null || elem !is OCFunctionDefinition) {
+                    anchor = struct.addAfter(elem, anchor)
+                } else {
+                    val declarationText =
+                        "${elem.typeElement!!.text} ${elem.declarators.joinToString(" ") { it.text }}"
+                    val definitionText =
+                        "${elem.typeElement!!.text} ${struct.name}::${elem.declarators.joinToString(" ") { it.text }} {}"
+                    val declaration = OCElementFactory.declarationFromText(declarationText, struct.containingFile)
+                    val definition = OCElementFactory.declarationFromText(definitionText, cppFile, true)
+                    definition.childOfType<OCBlockStatement>()!!.replace(elem.childOfType<OCBlockStatement>()!!)
+                    anchor = struct.addAfter(declaration, anchor)
+                    cppFile.add(definition)
+                }
             }
+
+//            val doc = struct.containingFile.document ?: error("Could not find doc")
+//            val text = doc.text
+//            // TODO hack
+//            struct.containingFile.document?.setText(text.substring(0, begin) + "public:" + text.substring(begin))
         }
     }
 

@@ -3,14 +3,14 @@
 int fd;
 Interface* interface;
 
-Interface* getInterface(const std::string & port) {
+Interface* getInterface(const char* port) {
     if (interface == nullptr) {
         initSerial(port);
     }
     return interface;
 }
 
-void initSerial(const std::string & port) {
+void initSerial(const char* port) {
     fd = open(port, O_RDWR | O_NOCTTY);
     if (fd < 0) {
         std::cout << "Error opening USB: " << strerror(errno) << std::endl;
@@ -50,5 +50,7 @@ void initSerial(const std::string & port) {
 }
 
 void closeSerial() {
-    delete interface;
+    if (interface != nullptr) {
+        delete interface;
+    }
 }

@@ -1,0 +1,1 @@
+target_compile_definitions(user_code PUBLIC TonUINO_Classic=1)

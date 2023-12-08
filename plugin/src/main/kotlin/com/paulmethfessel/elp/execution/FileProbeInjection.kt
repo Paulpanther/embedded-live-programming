@@ -6,8 +6,11 @@ import com.paulmethfessel.elp.ui.ProbePresentation
 import com.paulmethfessel.elp.util.*
 import com.intellij.openapi.util.Ref
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.parentOfType
 import com.intellij.refactoring.suggested.startOffset
 import com.jetbrains.cidr.lang.psi.OCExpression
+import com.jetbrains.cidr.lang.psi.OCFunctionDefinition
+import com.jetbrains.cidr.lang.psi.OCMethod
 import com.jetbrains.cidr.lang.util.OCElementFactory
 
 /**
@@ -62,6 +65,8 @@ object FileProbeInjection {
     private fun instrumentFile(probes: List<ProbeLocation>) {
         for (probe in probes) {
             // int a = 2 + 3 -> int a = add_probe(x, 2 + 3)
+            val method = probe.element.parentOfType<OCFunctionDefinition>() ?: continue
+            if (method.functionType?.returnType?.name == "constexpr") continue
             val expr = OCElementFactory
                 .callExpression("add_probe", listOf(probe.code.toString(), probe.element.text), probe.element)
             probe.element.replace(expr)
