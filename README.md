@@ -1,7 +1,7 @@
 # MμSE: Example-based live programming for embedded systems
 
 This CLion plugin provides examples, live execution and probes for runtime insight.
-For more information about the functionality and usage see [the paper (unpublished yet)]().
+For more information about the functionality and usage see [our paper](https://dl.acm.org/doi/10.1145/3613904.3642186).
 
 ## Dev Setup
 1. Clone this repo (This project only works on unix).
